@@ -5,10 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-function log_marp_action(string $message): void {
-    $logFile = __DIR__ . '/../logs/marp_render.log';
-    file_put_contents($logFile, date('[Y-m-d H:i:s] ') . $message . "\n", FILE_APPEND);
-}
+
 
 // --- MODO 1: GENERACIÓN DE ARCHIVO --- 
 if (isset($_SESSION['marp_generation'])) {
@@ -20,7 +17,7 @@ if (isset($_SESSION['marp_generation'])) {
     $outputFile = $params['output_path'] ?? '';
 
     if (empty($markdownContent) || empty($outputFile)) {
-        log_marp_action("ERROR [File Gen]: Parámetros inválidos. Markdown o ruta de salida vacíos.");
+        error_log("Marp Render ERROR: Parámetros inválidos. Markdown o ruta de salida vacíos.");
         return;
     }
 
@@ -28,14 +25,14 @@ if (isset($_SESSION['marp_generation'])) {
     $marpCliScriptPath = realpath(__DIR__ . '/../node_modules/@marp-team/marp-cli/marp-cli.js');
 
     if (!$marpCliScriptPath) {
-        log_marp_action("ERROR [File Gen]: No se encontró el script de Marp CLI.");
+        error_log("Marp Render ERROR: No se encontró el script de Marp CLI.");
         return;
     }
 
     $outputDir = dirname($outputFile);
     $tmpMdFile = tempnam($outputDir, 'marp_md_');
     if (!$tmpMdFile) {
-        log_marp_action("ERROR [File Gen]: No se pudo crear el archivo temporal en {$outputDir}");
+        error_log("Marp Render ERROR: No se pudo crear el archivo temporal en {$outputDir}");
         return;
     }
     
@@ -51,12 +48,12 @@ if (isset($_SESSION['marp_generation'])) {
         escapeshellarg($outputFile)
     );
 
-    log_marp_action("INFO [File Gen]: Ejecutando comando: {$command}");
+    error_log("Marp Render INFO: Ejecutando comando: {$command}");
 
     exec($command . ' 2>&1', $cli_output, $return_status);
     
-    log_marp_action("INFO [File Gen]: Salida de Marp CLI: " . implode("\n", $cli_output));
-    log_marp_action("INFO [File Gen]: Código de salida de Marp CLI: {$return_status}");
+    error_log("Marp Render INFO: Salida de Marp CLI: " . implode("\n", $cli_output));
+    error_log("Marp Render INFO: Código de salida de Marp CLI: {$return_status}");
 
     if (file_exists($tmpMdFile)) {
         unlink($tmpMdFile);
