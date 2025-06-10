@@ -25,7 +25,7 @@ if (isset($_SESSION['marp_generation'])) {
     }
 
     $nodeExecutablePath = 'node'; 
-    $marpCliScriptPath = realpath(__DIR__ . '/../node_modules/@marp-team/marp-cli/lib/cli.js');
+    $marpCliScriptPath = realpath(__DIR__ . '/../node_modules/@marp-team/marp-cli/marp-cli.js');
 
     if (!$marpCliScriptPath) {
         log_marp_action("ERROR [File Gen]: No se encontró el script de Marp CLI.");
@@ -68,7 +68,7 @@ if (isset($_SESSION['marp_generation'])) {
 if (isset($_POST['markdown'])) {
     $markdownContent = $_POST['markdown'];
     $nodeExecutablePath = 'node';
-    $marpCliScriptPath  = realpath(__DIR__ . '/../node_modules/@marp-team/marp-cli/lib/cli.js');
+    $marpCliScriptPath  = realpath(__DIR__ . '/../node_modules/@marp-team/marp-cli/marp-cli.js');
 
     if ($marpCliScriptPath === false) {
         http_response_code(500);

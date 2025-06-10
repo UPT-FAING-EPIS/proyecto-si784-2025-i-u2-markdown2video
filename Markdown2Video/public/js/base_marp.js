@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("Textarea #editor-marp no encontrado. Editor Marp no se inicializará.");
         return; 
     }
-
+    
     const marpCodeMirrorEditor = CodeMirror.fromTextArea(editorTextareaMarp, {
         mode: 'markdown',
         theme: 'dracula',
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
         marpCodeMirrorEditor.setSize('100%', '100%');
         marpCodeMirrorEditor.refresh();
     }
-    setTimeout(refreshMarpEditorLayout, 50);
+    setTimeout(refreshMarpEditorLayout, 50);    
 
     async function updateMarpPreview() {
         if (!previewDivMarp || !marpCodeMirrorEditor) return;
