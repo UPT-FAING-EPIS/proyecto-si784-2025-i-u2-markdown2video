@@ -45,7 +45,7 @@ echo "</script>\n";
             <div class="preview-body"><div id="ppt-preview"><p>Escribe en el editor para ver la vista previa...</p></div></div>
             <div class="button-container">
                 <button class="generate-btn" data-format="ppt">Generar PPT</button>
-                <button class="generate-btn" data-format="pdf">Generar PDFXDD</button>
+                <button class="generate-btn" data-format="pdf">Generar PDF</button>
                 <button class="generate-btn" data-format="mp4">Generar Video MP4</button>
                 <button class="generate-btn" data-format="html">Generar HTML</button>
             </div>

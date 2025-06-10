@@ -21,7 +21,18 @@ jobs:
       env:
         SSHPASS: ${{ secrets.SSH_PASSWORD }}
       run: |
+        # Instalar las herramientas necesarias en el runner de GitHub Actions
         sudo apt-get update
         sudo apt-get install -y sshpass rsync
 
-        sshpass -p "$SSHPASS" rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./Markdown2Video/ root@161.132.48.175:/var/www/html/Markdown2Video/
+        # Definir el servidor de destino
+        TARGET_HOST="root@3.140.27.154"
+
+        # Lista de dependencias de sistema para que Marp CLI (Puppeteer) funcione en un servidor Linux
+        DEPS="libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libxkbcommon-x11-0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 libasound2 libatspi2.0-0 libgtk-3-0"
+
+        echo ">>> Instalando dependencias en el servidor remoto..."
+        sshpass -p "$SSHPASS" ssh -o StrictHostKeyChecking=no $TARGET_HOST "apt-get update && apt-get install -y $DEPS"
+
+        echo ">>> Sincronizando los archivos de la aplicación..."
+        sshpass -p "$SSHPASS" rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./Markdown2Video/ $TARGET_HOST:/var/www/html/Markdown2Video/
