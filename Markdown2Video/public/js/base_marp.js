@@ -53,7 +53,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof DOMPurify !== 'undefined') {
                 const cleanHtml = DOMPurify.sanitize(htmlResult, { 
                     USE_PROFILES: { html: true },
-                    // Configuraciones específicas de Marp pueden agregarse aquí si es necesario
                 });
                 previewDivMarp.innerHTML = cleanHtml;
             } else {
@@ -88,4 +87,101 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     setTimeout(updateMarpPreview, 100); 
+
+    // --- Lógica para botones de generación ---
+    const generateButtons = document.querySelectorAll('.generate-btn');
+
+    generateButtons.forEach(button => {
+        button.addEventListener('click', async function(event) {
+            event.preventDefault();
+            const format = this.dataset.format;
+            const markdownContent = marpCodeMirrorEditor.getValue();
+
+            if (!markdownContent.trim()) {
+                alert('El editor de Markdown está vacío.');
+                return;
+            }
+
+            if (format === 'mp4') {
+                handleVideoGeneration(this, markdownContent);
+            } else {
+                handleFileGeneration(this, format, markdownContent);
+            }
+        });
+    });
+
+    async function handleFileGeneration(button, format, markdownContent) {
+        const originalButtonText = button.textContent;
+        button.disabled = true;
+        button.textContent = `Generando ${format.toUpperCase()}...`;
+
+        try {
+            const response = await fetch('/markdown/generate-marp-file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    markdown: markdownContent,
+                    format: format
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || `Error del servidor: ${response.status}`);
+            }
+
+            if (result.success && result.downloadUrl) {
+                window.location.href = result.downloadUrl;
+            } else {
+                throw new Error(result.message || 'Respuesta inválida del servidor.');
+            }
+        } catch (error) {
+            console.error(`Error al generar ${format.toUpperCase()}:`, error);
+            alert(`Error al generar ${format.toUpperCase()}: ${error.message}`);
+        } finally {
+            button.disabled = false;
+            button.textContent = originalButtonText;
+        }
+    }
+
+    async function handleVideoGeneration(button, markdownContent) {
+        const originalButtonText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Generando Video...';
+
+        try {
+            const response = await fetch('/markdown/generate-marp-video', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ markdown: markdownContent })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                const errorMsg = result.message || `Error del servidor (${response.status})`;
+                const errorDetails = result.details ? `\n\nDetalles:\n${result.details}` : '';
+                throw new Error(`${errorMsg}${errorDetails}`);
+            }
+
+            if (result.success && result.downloadUrl) {
+                window.location.href = result.downloadUrl;
+            } else {
+                throw new Error(result.message || 'Respuesta inválida del servidor.');
+            }
+        } catch (error) {
+            console.error('Error al generar MP4:', error);
+            alert(`Error al generar MP4: ${error.message}`);
+        } finally {
+            button.disabled = false;
+            button.textContent = originalButtonText;
+        }
+    }
 });
