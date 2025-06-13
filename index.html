@@ -2,40 +2,176 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Menú de Reportes</title>
     <style>
+      :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --background-color: #f8f9fa;
+        --card-bg: #ffffff;
+        --text-color: #2b2d42;
+        --text-light: #8d99ae;
+      }
+
       body {
-        font-family: sans-serif;
-        padding: 2em;
-        background-color: #f8f9fa;
-      }
-      h1 {
-        color: #333;
-      }
-      ul {
-        list-style: none;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background-color: var(--background-color);
         padding: 0;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
       }
-      li {
-        margin: 1em 0;
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+        width: 100%;
       }
-      a {
+
+      header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 600;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-top: 0.5rem;
+      }
+
+      .report-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .report-card {
+        background: var(--card-bg);
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--accent-color);
+      }
+
+      .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .report-card h2 {
+        margin: 0 0 0.5rem 0;
+        color: var(--primary-color);
+        font-size: 1.3rem;
+      }
+
+      .report-card p {
+        color: var(--text-light);
+        margin: 0 0 1rem 0;
+        font-size: 0.9rem;
+      }
+
+      .report-link {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background-color: var(--primary-color);
+        color: white;
         text-decoration: none;
-        color: #0069d9;
-        font-weight: bold;
+        border-radius: 4px;
+        font-weight: 500;
+        transition: background-color 0.3s;
       }
-      a:hover {
-        text-decoration: underline;
+
+      .report-link:hover {
+        background-color: var(--secondary-color);
+        text-decoration: none;
+      }
+
+      footer {
+        margin-top: auto;
+        text-align: center;
+        padding: 1.5rem;
+        color: var(--text-light);
+        font-size: 0.9rem;
+        border-top: 1px solid #e9ecef;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+
+        .report-grid {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>Menú de Reportes</h1>
-    <ul>
-      <li><a href="reports/html/">Reporte HTML</a></li>
-      <li><a href="coverage/">Reporte PDF</a></li>
-      <li><a href="reports/mutation/">Reporte de Mutaciones</a></li>
-      <li><a href="reports/estadisticas/">Estadísticas</a></li>
-    </ul>
+    <header>
+      <div class="container">
+        <h1>Menú de Reportes</h1>
+        <p class="subtitle">
+          Accede a los diferentes reportes de análisis de código
+        </p>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="report-grid">
+        <div class="report-card">
+          <h2>Reporte Semgrep</h2>
+          <p>
+            Análisis estático de código para identificar patrones problemáticos
+            y vulnerabilidades.
+          </p>
+          <a href="reports/html/" class="report-link">Abrir Reporte</a>
+        </div>
+
+        <div class="report-card">
+          <h2>Reporte de Cobertura</h2>
+          <p>
+            Métrica que muestra el porcentaje de código ejecutado por las
+            pruebas automatizadas.
+          </p>
+          <a href="coverage/" class="report-link">Abrir Reporte</a>
+        </div>
+
+        <div class="report-card">
+          <h2>Reporte de Mutaciones</h2>
+          <p>
+            Evalúa la efectividad de las pruebas mediante la inyección de
+            mutaciones en el código.
+          </p>
+          <a href="reports/mutation/" class="report-link">Abrir Reporte</a>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>Sistema de Reportes &copy; 2023 | Generado automáticamente</p>
+      </div>
+    </footer>
   </body>
 </html>
