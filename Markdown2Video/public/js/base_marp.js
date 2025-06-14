@@ -88,4 +88,73 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     setTimeout(updateMarpPreview, 100);
+
+    // --- INICIO: Lógica para Generar Archivos ---
+
+    const generateButtons = document.querySelectorAll('.generate-btn');
+
+    async function generateFile(format) {
+        const markdownText = marpCodeMirrorEditor.getValue();
+        if (!markdownText.trim()) {
+            alert("El editor está vacío. Escribe algo antes de generar un archivo.");
+            return;
+        }
+
+        // Opcional: Mostrar un indicador de carga
+        const button = document.querySelector(`.generate-btn[data-format="${format}"]`);
+        const originalText = button.textContent;
+        button.textContent = 'Generando...';
+        button.disabled = true;
+
+        try {
+            const response = await fetch('/markdown/generate-file', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    markdown: markdownText,
+                    format: format
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Error en el servidor');
+            }
+
+            const result = await response.json();
+
+            if (result.success && result.download_url) {
+                // Crear un enlace temporal para iniciar la descarga
+                const link = document.createElement('a');
+                link.href = result.download_url;
+                link.download = result.filename || `presentacion.${format}`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                throw new Error(result.message || 'No se pudo generar el archivo.');
+            }
+
+        } catch (error) {
+            console.error(`Error al generar ${format}:`, error);
+            alert(`Hubo un error al generar el archivo ${format}: ${error.message}`);
+        } finally {
+            // Restaurar el botón
+            button.textContent = originalText;
+            button.disabled = false;
+        }
+    }
+
+    generateButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const format = this.getAttribute('data-format');
+            if (format) {
+                generateFile(format);
+            }
+        });
+    });
+
+    // --- FIN: Lógica para Generar Archivos ---
 });
