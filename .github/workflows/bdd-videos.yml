@@ -33,7 +33,8 @@ jobs:
         working-directory: Markdown2Video
         run: |
           composer require --dev friends-of-behat/mink-extension
-          composer require --dev behat/mink-goutte-driver
+          composer require --dev behat/mink-selenium2-driver --with-all-dependencies  
+          composer require --dev dmore/chrome-mink-driver
           composer dump-autoload
         env:
           COMPOSER_PROCESS_TIMEOUT: 0
