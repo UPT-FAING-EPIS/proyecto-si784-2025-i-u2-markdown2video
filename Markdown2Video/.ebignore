@@ -1,0 +1,9 @@
+Markdown2Video/vendor/
+Markdown2Video/node_modules/
+Markdown2Video/logs/
+Markdown2Video/.git/
+Markdown2Video/.env
+Markdown2Video/composer.lock
+Markdown2Video/package-lock.json
+Markdown2Video/public/temp_files/
+Markdown2Video/reports/

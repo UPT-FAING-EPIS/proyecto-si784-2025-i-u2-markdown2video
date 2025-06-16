@@ -1,0 +1,124 @@
+----------------------------------------
+/var/log/eb-engine.log
+----------------------------------------
+2025/06/16 18:42:17.579179 [INFO] Running command: /opt/aws/bin/cfn-get-metadata -s arn:aws:cloudformation:us-east-2:017742597400:stack/awseb-e-cktmvvy6f6-stack/1a13af50-497e-11f0-90ac-0a56dc231965 -r AWSEBBeanstalkMetadata --region us-east-2
+2025/06/16 18:42:17.949355 [INFO] Procfile not found. Generating default rsyslog config
+2025/06/16 18:42:17.951754 [INFO] Running command: systemctl restart rsyslog.service
+2025/06/16 18:42:18.472005 [INFO] Executing instruction: PostBuildEbExtension
+2025/06/16 18:42:18.472031 [INFO] Starting executing the config set Infra-EmbeddedPostBuild.
+2025/06/16 18:42:18.472046 [INFO] Running command: /opt/aws/bin/cfn-init -s arn:aws:cloudformation:us-east-2:017742597400:stack/awseb-e-cktmvvy6f6-stack/1a13af50-497e-11f0-90ac-0a56dc231965 -r AWSEBAutoScalingGroup --region us-east-2 --configsets Infra-EmbeddedPostBuild
+2025/06/16 18:42:22.897220 [INFO] Finished executing the config set Infra-EmbeddedPostBuild.
+
+2025/06/16 18:42:22.897246 [INFO] Executing instruction: CleanEbExtensions
+2025/06/16 18:42:22.898014 [INFO] Cleaned ebextensions subdirectories from app staging directory.
+2025/06/16 18:42:22.898023 [INFO] Executing instruction: RunAppDeployPreDeployHooks
+2025/06/16 18:42:22.898043 [INFO] Executing platform hooks in .platform/hooks/predeploy/
+2025/06/16 18:42:22.898062 [INFO] The dir .platform/hooks/predeploy/ does not exist
+2025/06/16 18:42:22.898065 [INFO] Finished running scripts in /var/app/staging/.platform/hooks/predeploy
+2025/06/16 18:42:22.898070 [INFO] Executing instruction: stop X-Ray
+2025/06/16 18:42:22.898073 [INFO] stop X-Ray ...
+2025/06/16 18:42:22.898084 [INFO] Running command: systemctl show -p PartOf xray.service
+2025/06/16 18:42:22.913724 [WARN] stopProcess Warning: process xray is not registered 
+2025/06/16 18:42:22.913749 [INFO] Running command: systemctl stop xray.service
+2025/06/16 18:42:22.927915 [INFO] Executing instruction: stop proxy
+2025/06/16 18:42:22.927949 [INFO] Running command: systemctl show -p PartOf httpd.service
+2025/06/16 18:42:22.939550 [INFO] Running command: systemctl is-active httpd.service
+2025/06/16 18:42:22.947455 [INFO] Running command: systemctl show -p PartOf httpd.service
+2025/06/16 18:42:22.956425 [INFO] Running command: systemctl stop httpd.service
+2025/06/16 18:42:24.069418 [INFO] Running command: systemctl disable httpd.service
+2025/06/16 18:42:24.355209 [INFO] Running command: systemctl daemon-reload
+2025/06/16 18:42:24.633169 [INFO] Running command: systemctl reset-failed
+2025/06/16 18:42:24.641284 [INFO] Running command: systemctl show -p PartOf nginx.service
+2025/06/16 18:42:24.654885 [WARN] deregisterProcess Warning: process nginx is not registered, skipping...
+
+2025/06/16 18:42:24.654907 [INFO] Executing instruction: stop php-fpm
+2025/06/16 18:42:24.654918 [INFO] Running command: systemctl show -p PartOf php-fpm.service
+2025/06/16 18:42:24.666849 [INFO] Running command: systemctl stop php-fpm.service
+2025/06/16 18:42:24.818378 [INFO] Executing instruction: FlipApplication
+2025/06/16 18:42:24.818399 [INFO] Removing /var/app/current/ if it exists
+2025/06/16 18:42:25.255506 [INFO] Renaming /var/app/staging/ to /var/app/current/
+2025/06/16 18:42:25.255690 [INFO] create soft link from /var/app/current/ to /var/www/html
+2025/06/16 18:42:25.255726 [INFO] Executing instruction: start X-Ray
+2025/06/16 18:42:25.255731 [INFO] X-Ray is not enabled.
+2025/06/16 18:42:25.255734 [INFO] Executing instruction: start php-fpm
+2025/06/16 18:42:25.255883 [INFO] Running command: systemctl show -p PartOf php-fpm.service
+2025/06/16 18:42:25.267737 [WARN] Warning: process php-fpm is already registered...
+Deregistering the process ...
+2025/06/16 18:42:25.267762 [INFO] Running command: systemctl show -p PartOf php-fpm.service
+2025/06/16 18:42:25.280041 [INFO] Running command: systemctl is-active php-fpm.service
+2025/06/16 18:42:25.287406 [INFO] Running command: systemctl disable php-fpm.service
+2025/06/16 18:42:25.511395 [INFO] Running command: systemctl daemon-reload
+2025/06/16 18:42:25.768921 [INFO] Running command: systemctl reset-failed
+2025/06/16 18:42:25.779988 [INFO] Running command: systemctl daemon-reload
+2025/06/16 18:42:26.034078 [INFO] Running command: systemctl reset-failed
+2025/06/16 18:42:26.043314 [INFO] Running command: systemctl show -p PartOf php-fpm.service
+2025/06/16 18:42:26.057754 [INFO] Running command: systemctl is-active php-fpm.service
+2025/06/16 18:42:26.067439 [INFO] Running command: systemctl start php-fpm.service
+2025/06/16 18:42:26.210805 [INFO] Executing instruction: start proxy with new configuration
+2025/06/16 18:42:26.210860 [INFO] Running command: /usr/sbin/httpd -t -f /var/proxy/staging/httpd/conf/httpd.conf
+2025/06/16 18:42:26.291700 [INFO] Syntax OK
+
+2025/06/16 18:42:26.291952 [INFO] Copying file /var/proxy/staging/httpd/conf/httpd.conf to /etc/httpd/conf/httpd.conf
+2025/06/16 18:42:26.295132 [INFO] Running command: cp -rp /var/proxy/staging/httpd/conf.d /etc/httpd/
+2025/06/16 18:42:26.299100 [INFO] Running command: systemctl show -p PartOf httpd.service
+2025/06/16 18:42:26.315021 [INFO] Running command: systemctl daemon-reload
+2025/06/16 18:42:26.591219 [INFO] Running command: systemctl reset-failed
+2025/06/16 18:42:26.599486 [INFO] Running command: systemctl show -p PartOf httpd.service
+2025/06/16 18:42:26.614105 [INFO] Running command: systemctl is-active httpd.service
+2025/06/16 18:42:26.622295 [INFO] Running command: systemctl start httpd.service
+2025/06/16 18:42:27.760078 [INFO] Executing instruction: configureSqsd
+2025/06/16 18:42:27.760106 [INFO] This is a web server environment instance, skip configure sqsd daemon ...
+2025/06/16 18:42:27.760110 [INFO] Executing instruction: startSqsd
+2025/06/16 18:42:27.760112 [INFO] This is a web server environment instance, skip start sqsd daemon ...
+2025/06/16 18:42:27.760115 [INFO] Executing instruction: Track pids in healthd
+2025/06/16 18:42:27.760119 [INFO] This is an enhanced health env...
+2025/06/16 18:42:27.760128 [INFO] Running command: systemctl show -p ConsistsOf aws-eb.target | cut -d= -f2
+2025/06/16 18:42:27.769810 [INFO] php-fpm.service cfn-hup.service healthd.service httpd.service
+
+2025/06/16 18:42:27.769830 [INFO] Running command: systemctl show -p ConsistsOf eb-app.target | cut -d= -f2
+2025/06/16 18:42:27.778112 [INFO] 
+
+2025/06/16 18:42:27.778859 [INFO] Executing instruction: RunAppDeployPostDeployHooks
+2025/06/16 18:42:27.778939 [INFO] Executing platform hooks in .platform/hooks/postdeploy/
+2025/06/16 18:42:27.778954 [INFO] The dir .platform/hooks/postdeploy/ does not exist
+2025/06/16 18:42:27.778957 [INFO] Finished running scripts in /var/app/current/.platform/hooks/postdeploy
+2025/06/16 18:42:27.778963 [INFO] Executing cleanup logic
+2025/06/16 18:42:27.779082 [INFO] CommandService Response: {"status":"SUCCESS","api_version":"1.0","results":[{"status":"SUCCESS","msg":"Engine execution has succeeded.","returncode":0,"events":[{"msg":"Instance deployment: You included a 'vendor' folder in your source bundle. The deployment ignored 'composer.json' and didn't install Composer dependencies.","timestamp":1750099335675,"severity":"INFO"},{"msg":"Instance deployment completed successfully.","timestamp":1750099347778,"severity":"INFO"}]}]}
+
+2025/06/16 18:42:27.779246 [INFO] Platform Engine finished execution on command: app-deploy
+
+2025/06/16 18:56:52.453138 [INFO] Starting...
+2025/06/16 18:56:52.453186 [INFO] Starting EBPlatform-PlatformEngine
+2025/06/16 18:56:52.453224 [INFO] reading event message file
+2025/06/16 18:56:52.453530 [INFO] Engine received EB command cfn-hup-exec
+
+2025/06/16 18:56:52.524146 [INFO] Running command: /opt/aws/bin/cfn-get-metadata -s arn:aws:cloudformation:us-east-2:017742597400:stack/awseb-e-cktmvvy6f6-stack/1a13af50-497e-11f0-90ac-0a56dc231965 -r AWSEBAutoScalingGroup --region us-east-2
+2025/06/16 18:56:52.818021 [INFO] Running command: /opt/aws/bin/cfn-get-metadata -s arn:aws:cloudformation:us-east-2:017742597400:stack/awseb-e-cktmvvy6f6-stack/1a13af50-497e-11f0-90ac-0a56dc231965 -r AWSEBBeanstalkMetadata --region us-east-2
+2025/06/16 18:56:53.106938 [INFO] checking whether command tail-log is applicable to this instance...
+2025/06/16 18:56:53.106953 [INFO] this command is applicable to the instance, thus instance should execute command
+2025/06/16 18:56:53.106956 [INFO] Engine command: (tail-log)
+
+2025/06/16 18:56:53.107003 [INFO] Executing instruction: GetTailLogs
+2025/06/16 18:56:53.107014 [INFO] Tail Logs...
+2025/06/16 18:56:53.110877 [INFO] Running command: tail -n 100 /var/log/eb-engine.log
+
+
+----------------------------------------
+/var/log/eb-hooks.log
+----------------------------------------
+
+
+----------------------------------------
+/var/log/nginx/access.log
+----------------------------------------
+181.64.13.108 - - [15/Jun/2025:00:25:03 +0000] "GET / HTTP/1.1" 200 20329 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko/20100101 Firefox/139.0" "-"
+
+
+----------------------------------------
+/var/log/nginx/error.log
+----------------------------------------
+2025/06/15 00:18:32 [warn] 2034#2034: could not build optimal types_hash, you should increase either types_hash_max_size: 1024 or types_hash_bucket_size: 64; ignoring types_hash_bucket_size
+2025/06/15 00:18:33 [warn] 2067#2067: could not build optimal types_hash, you should increase either types_hash_max_size: 1024 or types_hash_bucket_size: 64; ignoring types_hash_bucket_size
+2025/06/15 00:18:33 [warn] 2068#2068: could not build optimal types_hash, you should increase either types_hash_max_size: 1024 or types_hash_bucket_size: 64; ignoring types_hash_bucket_size
+
+
