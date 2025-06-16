@@ -35,6 +35,7 @@ jobs:
           composer require --dev friends-of-behat/mink-extension
           composer require --dev behat/mink-selenium2-driver --with-all-dependencies  
           composer require --dev dmore/chrome-mink-driver
+          composer require --dev morenorafael/behat-playwright
           composer dump-autoload
         env:
           COMPOSER_PROCESS_TIMEOUT: 0
