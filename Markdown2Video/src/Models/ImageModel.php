@@ -38,7 +38,7 @@ class ImageModel {
     }
 
     public function getImagesByUserId(int $userId): array {
-        // --- CORRECCIÓN ---
+        // --- CORRECCIÓ ---
         // Se cambia "SELECT id," por "SELECT id_image," para que coincida con la nueva columna.
         $sql = "SELECT id_image, image_name, original_filename, uploaded_at FROM user_images WHERE user_id = :user_id ORDER BY uploaded_at DESC";
         $stmt = $this->pdo->prepare($sql);
