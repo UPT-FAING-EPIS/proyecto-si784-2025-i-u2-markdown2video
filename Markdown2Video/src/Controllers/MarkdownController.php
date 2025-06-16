@@ -450,9 +450,25 @@ class MarkdownController {
             
         } catch (\Throwable $e) {
             error_log("ERROR en generateMp4Video: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            
+            // Verificar si es un problema específico
+            $errorMessage = 'Error interno al generar el video MP4.';
+            if (strpos($e->getMessage(), 'directorio temporal') !== false) {
+                $errorMessage = 'Error al crear directorio temporal. Verifique permisos.';
+            } elseif (strpos($e->getMessage(), 'Node.js') !== false) {
+                $errorMessage = 'Node.js no está disponible en el servidor.';
+            } elseif (strpos($e->getMessage(), 'Puppeteer') !== false) {
+                $errorMessage = 'Error con Puppeteer. Verifique dependencias de Node.js.';
+            }
+            
             http_response_code(500);
             header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Error interno al generar el video MP4.']);
+            echo json_encode([
+                'success' => false, 
+                'error' => $errorMessage,
+                'debug' => $e->getMessage() // Solo para debugging, remover en producción
+            ]);
         }
         exit;
     }
@@ -503,24 +519,48 @@ class MarkdownController {
      */
     private function generateVideoFromHtml(string $htmlFile, string $outputVideo): bool {
         try {
-            // Comando para generar video usando Puppeteer o similar
-            // Nota: Esto requiere tener instalado Node.js y las dependencias necesarias
+            // Verificar que Node.js esté disponible
+            $nodeCheck = [];
+            $nodeReturn = 0;
+            exec('node --version 2>&1', $nodeCheck, $nodeReturn);
+            
+            if ($nodeReturn !== 0) {
+                error_log("Node.js no está disponible: " . implode("\n", $nodeCheck));
+                return $this->generateVideoWithFFmpeg($htmlFile, $outputVideo);
+            }
+            
+            // Verificar que el script existe
+            $scriptPath = ROOT_PATH . '/public/js/html-to-video.js';
+            if (!file_exists($scriptPath)) {
+                error_log("Script html-to-video.js no encontrado en: " . $scriptPath);
+                return $this->generateVideoWithFFmpeg($htmlFile, $outputVideo);
+            }
+            
+            // Comando para generar video usando Puppeteer
             $command = sprintf(
-                'node %s/public/js/html-to-video.js "%s" "%s"',
+                'cd %s && node public/js/html-to-video.js "%s" "%s"',
                 ROOT_PATH,
-                escapeshellarg($htmlFile),
-                escapeshellarg($outputVideo)
+                $htmlFile,
+                $outputVideo
             );
             
-            // Ejecutar comando
+            // Log del comando para debugging
+            error_log("Ejecutando comando de video: " . $command);
+            
+            // Ejecutar comando con timeout
             $output = [];
             $returnCode = 0;
             exec($command . ' 2>&1', $output, $returnCode);
             
+            // Log detallado del resultado
+            error_log("Código de retorno: " . $returnCode);
+            error_log("Salida del comando: " . implode("\n", $output));
+            
             if ($returnCode === 0 && file_exists($outputVideo)) {
+                error_log("Video generado exitosamente: " . $outputVideo);
                 return true;
             } else {
-                error_log("Error ejecutando comando de video: " . implode("\n", $output));
+                error_log("Error ejecutando comando de video. Código: " . $returnCode . ", Salida: " . implode("\n", $output));
                 
                 // Fallback: crear un video simple usando FFmpeg si está disponible
                 return $this->generateVideoWithFFmpeg($htmlFile, $outputVideo);

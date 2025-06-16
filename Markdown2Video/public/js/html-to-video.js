@@ -8,30 +8,59 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
+
+// Configuración específica para entornos de servidor/cloud
+const isServerEnvironment = process.env.NODE_ENV === 'production' || process.env.AWS_REGION;
+const chromeArgs = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-accelerated-2d-canvas',
+    '--no-first-run',
+    '--no-zygote',
+    '--single-process',
+    '--disable-gpu'
+];
+
+if (isServerEnvironment) {
+    chromeArgs.push(
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-features=TranslateUI',
+        '--disable-ipc-flooding-protection'
+    );
+}
 
 async function htmlToVideo(htmlFilePath, outputVideoPath) {
     let browser;
+    const tempDir = path.join(path.dirname(outputVideoPath), 'temp_screenshots');
     
     try {
-        console.log('Iniciando conversión HTML a video...');
+        console.log('Iniciando generación de video...');
+        console.log('Archivo HTML:', htmlFilePath);
+        console.log('Video de salida:', outputVideoPath);
+        console.log('Entorno de servidor:', isServerEnvironment);
         
         // Verificar que el archivo HTML existe
         if (!fs.existsSync(htmlFilePath)) {
             throw new Error(`Archivo HTML no encontrado: ${htmlFilePath}`);
         }
         
-        // Lanzar navegador
+        // Crear directorio temporal para screenshots
+        if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+            console.log('Directorio temporal creado:', tempDir);
+        }
+
+        // Lanzar Puppeteer con configuración optimizada
+        console.log('Lanzando Puppeteer con argumentos:', chromeArgs);
         browser = await puppeteer.launch({
             headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process'
-            ]
+            args: chromeArgs,
+            timeout: 60000,
+            protocolTimeout: 60000
         });
         
         const page = await browser.newPage();
