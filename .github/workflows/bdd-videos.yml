@@ -28,6 +28,17 @@ jobs:
 
       - name: Ensure video directory exists
         run: mkdir -p reports/videos
+      
+      - name: Install Behat Extensions
+        run: |
+          composer require --dev behat/mink-extension
+          composer require --dev behat/mink-goutte-driver
+          composer require --dev behat/mink-selenium2-driver
+          composer dump-autoload
+        env:
+          COMPOSER_PROCESS_TIMEOUT: 0
+          COMPOSER_NO_INTERACTION: 1
+          COMPOSER_NO_AUDIT: 1
 
       - name: Install Behat dependencies
         working-directory: Markdown2Video
