@@ -30,6 +30,7 @@ jobs:
         run: mkdir -p reports/videos
       
       - name: Install Behat Extensions
+        working-directory: Markdown2Video
         run: |
           composer require --dev behat/mink-extension
           composer require --dev behat/mink-goutte-driver
