@@ -29,3 +29,9 @@ video:
         browser: chromium
         video: on
         traces_dir: reports/traces
+  suites:
+    default:
+      contexts:
+        - FeatureContext
+      filters:
+        tags: "@video"
