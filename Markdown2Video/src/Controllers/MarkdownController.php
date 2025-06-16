@@ -503,8 +503,7 @@ class MarkdownController {
      */
     private function generateVideoFromHtml(string $htmlFile, string $outputVideo): bool {
         try {
-            // Comando para generar video usando Puppeteer o similar
-            // Nota: Esto requiere tener instalado Node.js y las dependencias necesarias
+            // Comando para generar video usando Puppeteer
             $command = sprintf(
                 'node %s/public/js/html-to-video.js "%s" "%s"',
                 ROOT_PATH,
@@ -512,22 +511,31 @@ class MarkdownController {
                 escapeshellarg($outputVideo)
             );
             
-            // Ejecutar comando
+            // Ejecutar comando y capturar TODA la salida
             $output = [];
             $returnCode = 0;
             exec($command . ' 2>&1', $output, $returnCode);
             
+            // LOGGING DETALLADO
+            $logMessage = "[VIDEO GENERATION] Comando: $command\n";
+            $logMessage .= "[VIDEO GENERATION] Código de retorno: $returnCode\n";
+            $logMessage .= "[VIDEO GENERATION] Salida: " . implode("\n", $output) . "\n";
+            $logMessage .= "[VIDEO GENERATION] Archivo HTML existe: " . (file_exists($htmlFile) ? 'SÍ' : 'NO') . "\n";
+            $logMessage .= "[VIDEO GENERATION] Archivo de salida existe: " . (file_exists($outputVideo) ? 'SÍ' : 'NO') . "\n";
+            
+            error_log($logMessage);
+            
             if ($returnCode === 0 && file_exists($outputVideo)) {
                 return true;
             } else {
-                error_log("Error ejecutando comando de video: " . implode("\n", $output));
+                error_log("[VIDEO GENERATION] Error ejecutando comando de video: " . implode("\n", $output));
                 
                 // Fallback: crear un video simple usando FFmpeg si está disponible
                 return $this->generateVideoWithFFmpeg($htmlFile, $outputVideo);
             }
             
         } catch (\Exception $e) {
-            error_log("Error en generateVideoFromHtml: " . $e->getMessage());
+            error_log("[VIDEO GENERATION] Error en generateVideoFromHtml: " . $e->getMessage());
             return false;
         }
     }
@@ -537,8 +545,15 @@ class MarkdownController {
      */
     private function generateVideoWithFFmpeg(string $htmlFile, string $outputVideo): bool {
         try {
+            // Verificar si FFmpeg está disponible
+            exec('ffmpeg -version 2>&1', $ffmpegCheck, $ffmpegReturn);
+            
+            if ($ffmpegReturn !== 0) {
+                error_log("[VIDEO GENERATION] FFmpeg no está disponible: " . implode("\n", $ffmpegCheck));
+                return false;
+            }
+            
             // Crear un video simple de 10 segundos como placeholder
-            // En una implementación real, aquí se capturaría el HTML como imágenes
             $command = sprintf(
                 'ffmpeg -f lavfi -i color=c=white:size=1280x720:duration=10 -c:v libx264 -pix_fmt yuv420p "%s" -y',
                 escapeshellarg($outputVideo)
@@ -548,10 +563,14 @@ class MarkdownController {
             $returnCode = 0;
             exec($command . ' 2>&1', $output, $returnCode);
             
+            error_log("[VIDEO GENERATION FALLBACK] Comando FFmpeg: $command");
+            error_log("[VIDEO GENERATION FALLBACK] Código de retorno: $returnCode");
+            error_log("[VIDEO GENERATION FALLBACK] Salida: " . implode("\n", $output));
+            
             return ($returnCode === 0 && file_exists($outputVideo));
             
         } catch (\Exception $e) {
-            error_log("Error en generateVideoWithFFmpeg: " . $e->getMessage());
+            error_log("[VIDEO GENERATION FALLBACK] Error en generateVideoWithFFmpeg: " . $e->getMessage());
             return false;
         }
     }
