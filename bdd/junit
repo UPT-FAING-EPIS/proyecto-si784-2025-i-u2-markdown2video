@@ -1,0 +1,44 @@
+Feature: Autenticación de usuarios
+  Como usuario del sistema
+  Quiero autenticarme
+  Para acceder a mis recursos protegidos
+
+  Scenario: Buscar usuario por email existente                    # features/user/user_authentication.feature:6
+    Given Tengo un usuario existente con email "user@example.com" # UserContext::tengoUsuarioExistenteConEmail()
+    When Busco el usuario por email "user@example.com"            # UserContext::buscoUsuarioPorEmail()
+    Then Debo obtener los datos del usuario incluyendo su email   # UserContext::deboObtenerDatosConEmail()
+
+  Scenario: Buscar usuario por username existente                  # features/user/user_authentication.feature:11
+    Given Tengo un usuario existente con username "testuser"       # UserContext::tengoUsuarioExistenteConUsername()
+    When Busco el usuario por username "testuser"                  # UserContext::buscoUsuarioPorUsername()
+    Then Debo obtener los datos del usuario incluyendo su username
+
+Feature: Gestión de usuarios
+  Como administrador del sistema
+  Quiero gestionar usuarios
+  Para mantener la seguridad y organización del sistema
+
+  Scenario: Crear un nuevo usuario exitosamente                                                   # features/user/user_management.feature:6
+    Given Tengo una conexión a la base de datos de prueba                                         # UserContext::tengoConexionBaseDatos()
+    When Creo un usuario con username "testuser", email "test@example.com" y password "secure123" # UserContext::creoUsuarioConDatos()
+    Then Debo obtener un ID de usuario válido                                                     # UserContext::deboObtenerIdValido()
+    And El usuario con email "test@example.com" debe existir en la base de datos                  # UserContext::usuarioDebeExistir()
+
+  Scenario: Obtener un usuario por ID                                          # features/user/user_management.feature:12
+    Given Tengo un usuario existente con username "existinguser"               # UserContext::tengoUsuarioExistenteConUsername()
+    When Busco el usuario por su ID                                            # UserContext::buscoUsuarioPorId()
+    Then Debo obtener los datos del usuario incluyendo username "existinguser" # UserContext::deboObtenerDatosConUsername()
+
+  Scenario: Actualizar un usuario                                            # features/user/user_management.feature:17
+    Given Tengo un usuario existente con username "oldusername"              # UserContext::tengoUsuarioExistenteConUsername()
+    When Actualizo el username a "newusername"                               # UserContext::actualizoUsername()
+    Then El usuario debe tener el username "newusername" en la base de datos # UserContext::usuarioDebeTenerUsername()
+
+  Scenario: Eliminar un usuario                                 # features/user/user_management.feature:22
+    Given Tengo un usuario existente con username "tobedeleted" # UserContext::tengoUsuarioExistenteConUsername()
+    When Elimino el usuario                                     # UserContext::eliminoUsuario()
+    Then El usuario no debe existir en la base de datos         # UserContext::usuarioNoDebeExistir()
+
+6 scenarios (5 passed, 1 undefined)
+19 steps (18 passed, 1 undefined)
+0m0.40s (10.60Mb)
