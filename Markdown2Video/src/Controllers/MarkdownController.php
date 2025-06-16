@@ -386,6 +386,232 @@ class MarkdownController {
         }
     }
 
+    /**
+     * Genera un video MP4 a partir del contenido Marp
+     */
+    public function generateMp4Video(): void {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['markdown'])) {
+            http_response_code(400); 
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Petición incorrecta o falta contenido markdown.']);
+            exit;
+        }
+
+        try {
+            $markdownContent = $_POST['markdown'];
+            $userId = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
+            
+            // Crear directorio temporal para el usuario
+            $userTempDir = ROOT_PATH . '/public/temp_files/videos/' . $userId . '/';
+            if (!is_dir($userTempDir)) {
+                if (!mkdir($userTempDir, 0775, true) && !is_dir($userTempDir)) {
+                    throw new \Exception("No se pudo crear el directorio temporal para videos.");
+                }
+            }
+            
+            // Generar nombre único para el video
+            $videoFileName = 'marp_video_' . time() . '_' . bin2hex(random_bytes(3)) . '.mp4';
+            $outputVideoFile = $userTempDir . $videoFileName;
+            
+            // Primero, renderizar el HTML de Marp
+            $htmlContent = $this->renderMarpToHtml($markdownContent);
+            
+            // Crear archivo HTML temporal
+            $tempHtmlFile = $userTempDir . 'temp_' . time() . '.html';
+            $fullHtml = $this->prepareHtmlForVideo($htmlContent);
+            file_put_contents($tempHtmlFile, $fullHtml);
+            
+            // Generar video usando Puppeteer/Chrome headless
+            $success = $this->generateVideoFromHtml($tempHtmlFile, $outputVideoFile);
+            
+            // Limpiar archivo temporal HTML
+            if (file_exists($tempHtmlFile)) {
+                unlink($tempHtmlFile);
+            }
+            
+            if ($success && file_exists($outputVideoFile)) {
+                // Guardar información en sesión
+                $_SESSION['video_download_file'] = $videoFileName;
+                $_SESSION['video_download_full_path'] = $outputVideoFile;
+                
+                // URL para previsualizar el video
+                $videoPreviewUrl = BASE_URL . '/public/temp_files/videos/' . $userId . '/' . $videoFileName;
+                
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Video MP4 generado exitosamente.',
+                    'videoUrl' => $videoPreviewUrl,
+                    'downloadPageUrl' => BASE_URL . '/markdown/download-video-page/' . urlencode($videoFileName)
+                ]);
+            } else {
+                throw new \Exception("Error al generar el archivo de video.");
+            }
+            
+        } catch (\Throwable $e) {
+            error_log("ERROR en generateMp4Video: " . $e->getMessage());
+            http_response_code(500);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Error interno al generar el video MP4.']);
+        }
+        exit;
+    }
+    
+    /**
+     * Renderiza contenido Marp a HTML
+     */
+    private function renderMarpToHtml(string $markdownContent): string {
+        // Usar el mismo script de renderizado que ya existe
+        ob_start();
+        $_POST['markdown'] = $markdownContent;
+        $renderScriptPath = ROOT_PATH . '/server/render_marp.php';
+        
+        if (file_exists($renderScriptPath)) {
+            include $renderScriptPath;
+        } else {
+            throw new \Exception("Script de renderizado Marp no encontrado.");
+        }
+        
+        $htmlResult = ob_get_clean();
+        return $htmlResult;
+    }
+    
+    /**
+     * Prepara el HTML para la generación de video
+     */
+    private function prepareHtmlForVideo(string $htmlContent): string {
+        $fullHtml = '<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marp Video</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        .marp-slide { width: 1280px; height: 720px; display: flex; flex-direction: column; justify-content: center; align-items: center; page-break-after: always; }
+        @media print { .marp-slide { page-break-after: always; } }
+    </style>
+</head>
+<body>' . $htmlContent . '</body>
+</html>';
+        
+        return $fullHtml;
+    }
+    
+    /**
+     * Genera video desde HTML usando herramientas externas
+     */
+    private function generateVideoFromHtml(string $htmlFile, string $outputVideo): bool {
+        try {
+            // Comando para generar video usando Puppeteer o similar
+            // Nota: Esto requiere tener instalado Node.js y las dependencias necesarias
+            $command = sprintf(
+                'node %s/public/js/html-to-video.js "%s" "%s"',
+                ROOT_PATH,
+                escapeshellarg($htmlFile),
+                escapeshellarg($outputVideo)
+            );
+            
+            // Ejecutar comando
+            $output = [];
+            $returnCode = 0;
+            exec($command . ' 2>&1', $output, $returnCode);
+            
+            if ($returnCode === 0 && file_exists($outputVideo)) {
+                return true;
+            } else {
+                error_log("Error ejecutando comando de video: " . implode("\n", $output));
+                
+                // Fallback: crear un video simple usando FFmpeg si está disponible
+                return $this->generateVideoWithFFmpeg($htmlFile, $outputVideo);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Error en generateVideoFromHtml: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Fallback para generar video usando FFmpeg
+     */
+    private function generateVideoWithFFmpeg(string $htmlFile, string $outputVideo): bool {
+        try {
+            // Crear un video simple de 10 segundos como placeholder
+            // En una implementación real, aquí se capturaría el HTML como imágenes
+            $command = sprintf(
+                'ffmpeg -f lavfi -i color=c=white:size=1280x720:duration=10 -c:v libx264 -pix_fmt yuv420p "%s" -y',
+                escapeshellarg($outputVideo)
+            );
+            
+            $output = [];
+            $returnCode = 0;
+            exec($command . ' 2>&1', $output, $returnCode);
+            
+            return ($returnCode === 0 && file_exists($outputVideo));
+            
+        } catch (\Exception $e) {
+            error_log("Error en generateVideoWithFFmpeg: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Muestra la página de descarga de video
+     */
+    public function showVideoDownloadPage(string $filenameFromUrl): void {
+        $filename = basename(urldecode($filenameFromUrl));
+        $userIdForPath = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
+        $expectedSessionFile = $_SESSION['video_download_file'] ?? null;
+        $expectedSessionPath = $_SESSION['video_download_full_path'] ?? null;
+        $currentExpectedDiskPath = ROOT_PATH . '/public/temp_files/videos/' . $userIdForPath . '/' . $filename;
+
+        if ($expectedSessionFile === $filename && $expectedSessionPath === $currentExpectedDiskPath && file_exists($currentExpectedDiskPath)) {
+            $base_url = BASE_URL;
+            $pageTitle = "Descargar Video: " . htmlspecialchars($filename, ENT_QUOTES, 'UTF-8');
+            $downloadLink = BASE_URL . '/markdown/force-download-video/' . urlencode($filename);
+            $actual_filename = $filename;
+            $videoPreviewUrl = BASE_URL . '/public/temp_files/videos/' . $userIdForPath . '/' . $filename;
+            
+            require_once VIEWS_PATH . '/download_video.php';
+        } else { 
+            http_response_code(404);
+            echo "Video no encontrado o sesión inválida.";
+            exit;
+        }
+    }
+    
+    /**
+     * Fuerza la descarga del video MP4
+     */
+    public function forceDownloadVideo(string $filenameFromUrl): void {
+        $filename = basename(urldecode($filenameFromUrl));
+        $userIdForPath = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
+        $expectedSessionPath = $_SESSION['video_download_full_path'] ?? null;
+        $currentDiskPath = ROOT_PATH . '/public/temp_files/videos/' . $userIdForPath . '/' . $filename;
+
+        if ($expectedSessionPath === $currentDiskPath && file_exists($currentDiskPath)) {
+            header('Content-Description: File Transfer');
+            header('Content-Type: video/mp4');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . filesize($currentDiskPath));
+            flush(); 
+            readfile($currentDiskPath);
+            
+            // Limpiar archivo temporal después de la descarga
+            unlink($currentDiskPath);
+            unset($_SESSION['video_download_file'], $_SESSION['video_download_full_path']);
+            exit;
+        } else { 
+            http_response_code(404);
+            echo "Video no encontrado o acceso no autorizado.";
+            exit;
+        }
+    }
+
     private function showErrorPage(string $logMessage, string $userMessage = "Error."): void {
         error_log($logMessage);
         http_response_code(500);

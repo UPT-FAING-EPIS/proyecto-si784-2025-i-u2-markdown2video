@@ -87,5 +87,87 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Event listeners para los botones de generación
+    const generateButtons = document.querySelectorAll('.generate-btn');
+    generateButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+            const format = this.getAttribute('data-format');
+            
+            if (format === 'mp4') {
+                await generateMp4Video();
+            } else {
+                console.log(`Funcionalidad para ${format} no implementada aún.`);
+            }
+        });
+    });
+
+    async function generateMp4Video() {
+        const markdownContent = marpCodeMirrorEditor.getValue();
+        
+        if (!markdownContent.trim()) {
+            alert('Por favor, escribe contenido en el editor antes de generar el video.');
+            return;
+        }
+
+        // Mostrar indicador de carga
+        const mp4Button = document.querySelector('[data-format="mp4"]');
+        const originalText = mp4Button.textContent;
+        mp4Button.textContent = 'Generando Video...';
+        mp4Button.disabled = true;
+
+        try {
+            const response = await fetch('/markdown/generate-mp4-video', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `markdown=${encodeURIComponent(markdownContent)}`
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Mostrar preview del video en la página
+                showVideoPreview(result.videoUrl);
+                
+                // Redirigir a la página de descarga después de un momento
+                setTimeout(() => {
+                    window.location.href = result.downloadPageUrl;
+                }, 2000);
+            } else {
+                alert('Error al generar el video: ' + (result.error || 'Error desconocido'));
+            }
+        } catch (error) {
+            console.error('Error al generar video MP4:', error);
+            alert('Error al generar el video. Por favor, inténtalo de nuevo.');
+        } finally {
+            // Restaurar el botón
+            mp4Button.textContent = originalText;
+            mp4Button.disabled = false;
+        }
+    }
+
+    function showVideoPreview(videoUrl) {
+        // Crear un elemento de video para mostrar la preview
+        const previewContainer = document.getElementById('ppt-preview');
+        
+        const videoElement = document.createElement('video');
+        videoElement.src = videoUrl;
+        videoElement.controls = true;
+        videoElement.style.width = '100%';
+        videoElement.style.maxWidth = '600px';
+        videoElement.style.height = 'auto';
+        
+        const successMessage = document.createElement('p');
+        successMessage.textContent = '¡Video generado exitosamente!';
+        successMessage.style.color = '#28a745';
+        successMessage.style.fontWeight = 'bold';
+        successMessage.style.textAlign = 'center';
+        
+        previewContainer.innerHTML = '';
+        previewContainer.appendChild(successMessage);
+        previewContainer.appendChild(videoElement);
+    }
+
     setTimeout(updateMarpPreview, 100);
 });

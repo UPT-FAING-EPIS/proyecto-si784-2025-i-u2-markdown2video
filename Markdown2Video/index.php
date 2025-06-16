@@ -168,6 +168,16 @@ if ($controllerClassName === 'Dales\\Markdown2video\\Controllers\\AuthController
     } elseif ($actionName === 'delete-image' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $methodToCall = 'deleteImage';
     }
+    // --- RUTAS PARA GENERAR VIDEO MP4 ---
+    elseif ($actionName === 'generate-mp4-video' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $methodToCall = 'generateMp4Video';
+    }
+    // --- RUTAS PARA LA PÁGINA DE DESCARGA Y DESCARGA FORZADA DE VIDEO ---
+    elseif ($actionName === 'download-video-page' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $methodToCall = 'showVideoDownloadPage';
+    } elseif ($actionName === 'force-download-video' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $methodToCall = 'forceDownloadVideo';
+    }
     // --- ¡AÑADIR ESTA NUEVA RUTA AQUÍ! ---
     elseif ($actionName === 'create-from-template' && isset($urlSegments[2]) && is_numeric($urlSegments[2])) {
         $methodToCall = 'createFromTemplate';
