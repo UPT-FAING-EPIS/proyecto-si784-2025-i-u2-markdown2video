@@ -390,43 +390,81 @@ class MarkdownController {
      * Genera un video MP4 a partir del contenido Marp
      */
     public function generateMp4Video(): void {
+        // Log inicial
+        error_log("[VIDEO DEBUG] Iniciando generateMp4Video - Método: " . $_SERVER['REQUEST_METHOD']);
+        error_log("[VIDEO DEBUG] POST data disponible: " . (isset($_POST['markdown']) ? 'SÍ' : 'NO'));
+        
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['markdown'])) {
+            error_log("[VIDEO DEBUG] Error: Petición incorrecta o falta contenido markdown");
             http_response_code(400); 
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => 'Petición incorrecta o falta contenido markdown.']);
             exit;
         }
-
+    
         try {
             $markdownContent = $_POST['markdown'];
             $userId = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
             
+            error_log("[VIDEO DEBUG] Usuario ID: " . $userId);
+            error_log("[VIDEO DEBUG] Longitud del contenido markdown: " . strlen($markdownContent));
+            error_log("[VIDEO DEBUG] ROOT_PATH: " . ROOT_PATH);
+            
             // Crear directorio temporal para el usuario
             $userTempDir = ROOT_PATH . '/public/temp_files/videos/' . $userId . '/';
+            error_log("[VIDEO DEBUG] Directorio temporal del usuario: " . $userTempDir);
+            error_log("[VIDEO DEBUG] Directorio existe: " . (is_dir($userTempDir) ? 'SÍ' : 'NO'));
+            
             if (!is_dir($userTempDir)) {
+                error_log("[VIDEO DEBUG] Intentando crear directorio: " . $userTempDir);
                 if (!mkdir($userTempDir, 0775, true) && !is_dir($userTempDir)) {
+                    error_log("[VIDEO DEBUG] ERROR: No se pudo crear el directorio temporal");
                     throw new \Exception("No se pudo crear el directorio temporal para videos.");
                 }
+                error_log("[VIDEO DEBUG] Directorio creado exitosamente");
             }
+            
+            // Verificar permisos del directorio
+            error_log("[VIDEO DEBUG] Permisos del directorio: " . substr(sprintf('%o', fileperms($userTempDir)), -4));
+            error_log("[VIDEO DEBUG] Directorio escribible: " . (is_writable($userTempDir) ? 'SÍ' : 'NO'));
             
             // Generar nombre único para el video
             $videoFileName = 'marp_video_' . time() . '_' . bin2hex(random_bytes(3)) . '.mp4';
             $outputVideoFile = $userTempDir . $videoFileName;
+            error_log("[VIDEO DEBUG] Nombre del archivo de video: " . $videoFileName);
+            error_log("[VIDEO DEBUG] Ruta completa del video: " . $outputVideoFile);
             
             // Primero, renderizar el HTML de Marp
+            error_log("[VIDEO DEBUG] Iniciando renderizado de Marp a HTML");
             $htmlContent = $this->renderMarpToHtml($markdownContent);
+            error_log("[VIDEO DEBUG] HTML renderizado - Longitud: " . strlen($htmlContent));
             
             // Crear archivo HTML temporal
             $tempHtmlFile = $userTempDir . 'temp_' . time() . '.html';
+            error_log("[VIDEO DEBUG] Archivo HTML temporal: " . $tempHtmlFile);
+            
             $fullHtml = $this->prepareHtmlForVideo($htmlContent);
-            file_put_contents($tempHtmlFile, $fullHtml);
+            error_log("[VIDEO DEBUG] HTML preparado para video - Longitud: " . strlen($fullHtml));
+            
+            $htmlWriteResult = file_put_contents($tempHtmlFile, $fullHtml);
+            error_log("[VIDEO DEBUG] Resultado de escritura HTML: " . ($htmlWriteResult !== false ? 'ÉXITO (' . $htmlWriteResult . ' bytes)' : 'ERROR'));
+            error_log("[VIDEO DEBUG] Archivo HTML existe después de escritura: " . (file_exists($tempHtmlFile) ? 'SÍ' : 'NO'));
             
             // Generar video usando Puppeteer/Chrome headless
+            error_log("[VIDEO DEBUG] Iniciando generación de video desde HTML");
             $success = $this->generateVideoFromHtml($tempHtmlFile, $outputVideoFile);
+            error_log("[VIDEO DEBUG] Resultado de generación de video: " . ($success ? 'ÉXITO' : 'FALLO'));
+            
+            // Verificar si el archivo de video se creó
+            error_log("[VIDEO DEBUG] Archivo de video existe: " . (file_exists($outputVideoFile) ? 'SÍ' : 'NO'));
+            if (file_exists($outputVideoFile)) {
+                error_log("[VIDEO DEBUG] Tamaño del archivo de video: " . filesize($outputVideoFile) . " bytes");
+            }
             
             // Limpiar archivo temporal HTML
             if (file_exists($tempHtmlFile)) {
-                unlink($tempHtmlFile);
+                $unlinkResult = unlink($tempHtmlFile);
+                error_log("[VIDEO DEBUG] Limpieza de archivo HTML temporal: " . ($unlinkResult ? 'ÉXITO' : 'ERROR'));
             }
             
             if ($success && file_exists($outputVideoFile)) {
@@ -434,8 +472,11 @@ class MarkdownController {
                 $_SESSION['video_download_file'] = $videoFileName;
                 $_SESSION['video_download_full_path'] = $outputVideoFile;
                 
+                error_log("[VIDEO DEBUG] Video generado exitosamente - Guardado en sesión");
+                
                 // URL para previsualizar el video
                 $videoPreviewUrl = BASE_URL . '/public/temp_files/videos/' . $userId . '/' . $videoFileName;
+                error_log("[VIDEO DEBUG] URL de previsualización: " . $videoPreviewUrl);
                 
                 header('Content-Type: application/json');
                 echo json_encode([
@@ -445,14 +486,18 @@ class MarkdownController {
                     'downloadPageUrl' => BASE_URL . '/markdown/download-video-page/' . urlencode($videoFileName)
                 ]);
             } else {
+                error_log("[VIDEO DEBUG] ERROR: Fallo en la generación del video o archivo no existe");
                 throw new \Exception("Error al generar el archivo de video.");
             }
             
         } catch (\Throwable $e) {
-            error_log("ERROR en generateMp4Video: " . $e->getMessage());
+            error_log("[VIDEO DEBUG] EXCEPCIÓN CAPTURADA: " . $e->getMessage());
+            error_log("[VIDEO DEBUG] Archivo: " . $e->getFile() . " Línea: " . $e->getLine());
+            error_log("[VIDEO DEBUG] Stack trace: " . $e->getTraceAsString());
+            
             http_response_code(500);
             header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Error interno al generar el video MP4.'. $e->getMessage()]);
+            echo json_encode(['success' => false, 'error' => 'Error interno al generar el video MP4.' . $e->getMessage()]);
         }
         exit;
     }
@@ -503,8 +548,25 @@ class MarkdownController {
      */
     private function generateVideoFromHtml(string $htmlFile, string $outputVideo): bool {
         try {
+            error_log("[VIDEO DEBUG] generateVideoFromHtml - Archivo HTML: " . $htmlFile);
+            error_log("[VIDEO DEBUG] generateVideoFromHtml - Archivo de salida: " . $outputVideo);
+            error_log("[VIDEO DEBUG] generateVideoFromHtml - HTML existe: " . (file_exists($htmlFile) ? 'SÍ' : 'NO'));
+            
+            // Verificar si Node.js está disponible
+            $nodeCheck = [];
+            $nodeReturnCode = 0;
+            exec('which node 2>&1', $nodeCheck, $nodeReturnCode);
+            error_log("[VIDEO DEBUG] Node.js disponible: " . ($nodeReturnCode === 0 ? 'SÍ' : 'NO'));
+            if ($nodeReturnCode === 0) {
+                error_log("[VIDEO DEBUG] Ruta de Node.js: " . implode('', $nodeCheck));
+            }
+            
+            // Verificar si el script html-to-video.js existe
+            $scriptPath = ROOT_PATH . '/public/js/html-to-video.js';
+            error_log("[VIDEO DEBUG] Script html-to-video.js existe: " . (file_exists($scriptPath) ? 'SÍ' : 'NO'));
+            error_log("[VIDEO DEBUG] Ruta del script: " . $scriptPath);
+            
             // Comando para generar video usando Puppeteer o similar
-            // Nota: Esto requiere tener instalado Node.js y las dependencias necesarias
             $command = sprintf(
                 'node %s/public/js/html-to-video.js "%s" "%s"',
                 ROOT_PATH,
@@ -512,22 +574,29 @@ class MarkdownController {
                 escapeshellarg($outputVideo)
             );
             
+            error_log("[VIDEO DEBUG] Comando a ejecutar: " . $command);
+            
             // Ejecutar comando
             $output = [];
             $returnCode = 0;
             exec($command . ' 2>&1', $output, $returnCode);
             
+            error_log("[VIDEO DEBUG] Código de retorno del comando: " . $returnCode);
+            error_log("[VIDEO DEBUG] Salida del comando: " . implode("\n", $output));
+            
             if ($returnCode === 0 && file_exists($outputVideo)) {
+                error_log("[VIDEO DEBUG] Video generado exitosamente con Node.js/Puppeteer");
                 return true;
             } else {
-                error_log("Error ejecutando comando de video: " . implode("\n", $output));
+                error_log("[VIDEO DEBUG] Error ejecutando comando de video, intentando fallback con FFmpeg");
+                error_log("[VIDEO DEBUG] Salida completa del error: " . implode("\n", $output));
                 
                 // Fallback: crear un video simple usando FFmpeg si está disponible
                 return $this->generateVideoWithFFmpeg($htmlFile, $outputVideo);
             }
             
         } catch (\Exception $e) {
-            error_log("Error en generateVideoFromHtml: " . $e->getMessage());
+            error_log("[VIDEO DEBUG] Excepción en generateVideoFromHtml: " . $e->getMessage());
             return false;
         }
     }
@@ -537,21 +606,48 @@ class MarkdownController {
      */
     private function generateVideoWithFFmpeg(string $htmlFile, string $outputVideo): bool {
         try {
+            error_log("[VIDEO DEBUG] generateVideoWithFFmpeg - Iniciando fallback");
+            error_log("[VIDEO DEBUG] generateVideoWithFFmpeg - Archivo HTML: " . $htmlFile);
+            error_log("[VIDEO DEBUG] generateVideoWithFFmpeg - Archivo de salida: " . $outputVideo);
+            
+            // Verificar si FFmpeg está disponible
+            $ffmpegCheck = [];
+            $ffmpegReturnCode = 0;
+            exec('which ffmpeg 2>&1', $ffmpegCheck, $ffmpegReturnCode);
+            error_log("[VIDEO DEBUG] FFmpeg disponible: " . ($ffmpegReturnCode === 0 ? 'SÍ' : 'NO'));
+            if ($ffmpegReturnCode === 0) {
+                error_log("[VIDEO DEBUG] Ruta de FFmpeg: " . implode('', $ffmpegCheck));
+            } else {
+                error_log("[VIDEO DEBUG] ERROR: FFmpeg no está disponible en el sistema");
+                return false;
+            }
+            
             // Crear un video simple de 10 segundos como placeholder
-            // En una implementación real, aquí se capturaría el HTML como imágenes
             $command = sprintf(
                 'ffmpeg -f lavfi -i color=c=white:size=1280x720:duration=10 -c:v libx264 -pix_fmt yuv420p "%s" -y',
                 escapeshellarg($outputVideo)
             );
             
+            error_log("[VIDEO DEBUG] Comando FFmpeg: " . $command);
+            
             $output = [];
             $returnCode = 0;
             exec($command . ' 2>&1', $output, $returnCode);
             
-            return ($returnCode === 0 && file_exists($outputVideo));
+            error_log("[VIDEO DEBUG] FFmpeg código de retorno: " . $returnCode);
+            error_log("[VIDEO DEBUG] FFmpeg salida: " . implode("\n", $output));
+            
+            $success = ($returnCode === 0 && file_exists($outputVideo));
+            error_log("[VIDEO DEBUG] FFmpeg resultado: " . ($success ? 'ÉXITO' : 'FALLO'));
+            
+            if (file_exists($outputVideo)) {
+                error_log("[VIDEO DEBUG] Tamaño del video generado por FFmpeg: " . filesize($outputVideo) . " bytes");
+            }
+            
+            return $success;
             
         } catch (\Exception $e) {
-            error_log("Error en generateVideoWithFFmpeg: " . $e->getMessage());
+            error_log("[VIDEO DEBUG] Excepción en generateVideoWithFFmpeg: " . $e->getMessage());
             return false;
         }
     }
