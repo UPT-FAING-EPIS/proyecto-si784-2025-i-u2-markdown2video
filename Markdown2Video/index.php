@@ -111,8 +111,17 @@ $urlParam = rtrim($urlParam, '/'); // Quitar barras finales
 $urlParam = filter_var($urlParam, FILTER_SANITIZE_URL); // Sanear la URL
 $urlSegments = $urlParam ? explode('/', $urlParam) : []; // Si $urlParam es vacío después de sanear, $urlSegments es []
 
+// Agregar esto después de la línea 108 (después de determinar $urlSegments)
+// y antes de la línea que determina el controlador por defecto
+
+// Rutas especiales que no usan controladores
+if ($urlParam === 'check-logs') {
+    include ROOT_PATH . '/public/check_logs.php';
+    exit;
+}
+
 // Determinar el controlador y la acción por defecto
-if (empty($urlSegments)) { // URL raíz (ej. /markdown2video/ o /)
+if (empty($urlSegments)) {
     $controllerNamePart = 'Auth';       // Controlador por defecto para la raíz
     $actionName         = 'showLoginForm'; // Acción por defecto para la raíz
 } else {
