@@ -452,7 +452,7 @@ class MarkdownController {
             error_log("ERROR en generateMp4Video: " . $e->getMessage());
             http_response_code(500);
             header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Error interno al generar el video MP4.']);
+            echo json_encode(['success' => false, 'error' => 'Error interno al generar el video MP4.'. $e->getMessage()]);
         }
         exit;
     }
