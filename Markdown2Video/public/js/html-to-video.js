@@ -11,70 +11,94 @@ const path = require("path");
 
 async function htmlToVideo(htmlFilePath, outputVideoPath) {
   let browser;
+  let retries = 3;
 
-  try {
-    console.log("Iniciando conversión HTML a video...");
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      console.log(`Intento ${attempt}/${retries}: Iniciando conversión HTML a video...`);
 
-    // Verificar que el archivo HTML existe
-    if (!fs.existsSync(htmlFilePath)) {
-      throw new Error(`Archivo HTML no encontrado: ${htmlFilePath}`);
-    }
+      // Verificar que el archivo HTML existe
+      if (!fs.existsSync(htmlFilePath)) {
+        throw new Error(`Archivo HTML no encontrado: ${htmlFilePath}`);
+      }
 
-    // Lanzar navegador
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--no-first-run",
-        "--no-zygote",
-        "--single-process",
-      ],
-      protocolTimeout: 60000, // Aumentar timeout a 60 segundos
-    });
+      // Lanzar navegador con configuración más robusta
+      browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-gpu",
+          "--no-first-run",
+          "--no-zygote",
+          "--single-process",
+          "--disable-web-security",
+          "--disable-features=VizDisplayCompositor",
+          "--disable-background-timer-throttling",
+          "--disable-backgrounding-occluded-windows",
+          "--disable-renderer-backgrounding"
+        ],
+        protocolTimeout: 180000, // 3 minutos
+        timeout: 180000,
+      });
 
-    const page = await browser.newPage();
+      const page = await browser.newPage();
+      
+      // Configurar timeouts
+      page.setDefaultTimeout(180000);
+      page.setDefaultNavigationTimeout(180000);
 
-    // Configurar viewport para video HD
-    await page.setViewport({
-      width: 1280,
-      height: 720,
-      deviceScaleFactor: 1,
-    });
+      // Configurar viewport para video HD
+      await page.setViewport({
+        width: 1280,
+        height: 720,
+        deviceScaleFactor: 1,
+      });
 
-    // Cargar el archivo HTML
-    const htmlContent = fs.readFileSync(htmlFilePath, "utf8");
-    await page.setContent(htmlContent, {
-      waitUntil: "networkidle0",
-      timeout: 60000, // Aumentar de 30000 a 60000
-    });
+      // Cargar el archivo HTML
+      const htmlContent = fs.readFileSync(htmlFilePath, "utf8");
+      await page.setContent(htmlContent, {
+        waitUntil: "domcontentloaded",
+        timeout: 180000,
+      });
 
-    // Esperar a que se cargue completamente
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Esperar a que se cargue completamente
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    // Buscar todas las diapositivas
-    const slides = await page.$$(".marp-slide, section, .slide");
+      // Buscar todas las diapositivas
+      const slides = await page.$$("section, .slide, .marp-slide");
 
-    if (slides.length === 0) {
-      console.log(
-        "No se encontraron diapositivas, capturando página completa..."
-      );
-      // Si no hay diapositivas específicas, capturar la página completa
-      await capturePageAsVideo(page, outputVideoPath);
-    } else {
-      console.log(`Encontradas ${slides.length} diapositivas`);
-      await captureSlidesAsVideo(page, slides, outputVideoPath);
-    }
+      if (slides.length === 0) {
+        console.log("No se encontraron diapositivas, capturando página completa...");
+        await capturePageAsVideo(page, outputVideoPath);
+      } else {
+        console.log(`Encontradas ${slides.length} diapositivas`);
+        await captureSlidesAsVideo(page, slides, outputVideoPath);
+      }
 
-    console.log(`Video generado exitosamente: ${outputVideoPath}`);
-  } catch (error) {
-    console.error("Error al generar video:", error.message);
-    process.exit(1);
-  } finally {
-    if (browser) {
-      await browser.close();
+      console.log(`Video generado exitosamente: ${outputVideoPath}`);
+      break; // Salir del bucle si fue exitoso
+      
+    } catch (error) {
+      console.error(`Error en intento ${attempt}:`, error.message);
+      
+      if (browser) {
+        await browser.close();
+        browser = null;
+      }
+      
+      if (attempt === retries) {
+        console.error("Todos los intentos fallaron");
+        process.exit(1);
+      }
+      
+      // Esperar antes del siguiente intento
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    } finally {
+      if (browser) {
+        await browser.close();
+      }
     }
   }
 }
