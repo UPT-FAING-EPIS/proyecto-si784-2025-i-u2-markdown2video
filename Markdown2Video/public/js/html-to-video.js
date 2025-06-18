@@ -156,8 +156,17 @@ async function createVideoFromImages(imageFiles, outputPath) {
 
   // Crear archivo de lista para FFmpeg
   const listFile = outputPath.replace(".mp4", "_list.txt");
-  const listContent =
-    imageFiles.map((file) => `file '${file}'\nduration 3`).join("\n") + "\n";
+  
+  // CORRECCIÓN: Formato correcto para FFmpeg concat
+  let listContent = "";
+  imageFiles.forEach((file, index) => {
+    listContent += `file '${file}'\n`;
+    if (index < imageFiles.length - 1) {
+      listContent += "duration 3\n";
+    }
+  });
+  // Agregar duración para la última imagen
+  listContent += "duration 3\n";
 
   fs.writeFileSync(listFile, listContent);
 
