@@ -602,7 +602,7 @@ class MarkdownController {
     }
     
     /**
-     * Fallback para  generar video usando FFmpeg
+     * Fallback para generar video usando FFmpeg
      */
     private function generateVideoWithFFmpeg(string $htmlFile, string $outputVideo): bool {
         try {
