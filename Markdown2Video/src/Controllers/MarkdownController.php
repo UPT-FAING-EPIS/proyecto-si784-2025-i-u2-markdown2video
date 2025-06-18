@@ -706,7 +706,7 @@ class MarkdownController {
     //NUEVA FUNCIONA PARA PLANTILLAS DE MARKDOWN
     // Añade este método a src/Controllers/MarkdownController.php
 
-    // Pega este método DENTRO de la clase MarkdownController
+    // Pega este método DENTROde la clase MarkdownController
 
     public function createFromTemplate(int $templateId): void {
         // Verificamos que el modelo de plantillas exista. 
