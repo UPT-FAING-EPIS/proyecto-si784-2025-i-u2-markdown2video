@@ -610,7 +610,7 @@ class MarkdownController {
             error_log("[VIDEO DEBUG] generateVideoWithFFmpeg - Archivo HTML: " . $htmlFile);
             error_log("[VIDEO DEBUG] generateVideoWithFFmpeg - Archivo de salida: " . $outputVideo);
             
-            // Crear un video simple de 10 segundos como placeholder
+            // Crear un  video simple de 10 segundos como placeholder
             $command = sprintf(
                 'ffmpeg -f lavfi -i color=c=white:size=1280x720:duration=10 -c:v libx264 -pix_fmt yuv420p %s -y',
                 escapeshellarg($outputVideo)
