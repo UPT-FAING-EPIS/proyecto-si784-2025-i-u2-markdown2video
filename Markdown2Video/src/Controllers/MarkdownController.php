@@ -568,7 +568,7 @@ class MarkdownController {
             
             // Comando para generar video usando Puppeteer o similar
             $command = sprintf(
-                'node %s/public/js/html-to-video.js "%s" "%s"',
+                'node %s/public/js/html-to-video.js %s %s',
                 ROOT_PATH,
                 escapeshellarg($htmlFile),
                 escapeshellarg($outputVideo)
