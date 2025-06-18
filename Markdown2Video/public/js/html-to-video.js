@@ -154,33 +154,35 @@ async function createVideoFromImages(imageFiles, outputPath) {
   const util = require("util");
   const execPromise = util.promisify(exec);
 
-  // Crear archivo de lista para FFmpeg
-  const listFile = outputPath.replace(".mp4", "_list.txt");
-  
-  // CORRECCIÓN: Formato correcto para FFmpeg concat
-  let listContent = "";
-  imageFiles.forEach((file, index) => {
-    listContent += `file '${file}'\n`;
-    if (index < imageFiles.length - 1) {
-      listContent += "duration 3\n";
-    }
-  });
-  // Agregar duración para la última imagen
-  listContent += "duration 3\n";
-
-  fs.writeFileSync(listFile, listContent);
-
   try {
-    // Comando FFmpeg para crear video desde imágenes
-    const command = `ffmpeg -f concat -safe 0 -i "${listFile}" -vsync vfr -pix_fmt yuv420p -vf "scale=1280:720" "${outputPath}" -y`;
-
-    console.log("Generando video con FFmpeg...");
-    await execPromise(command);
-  } finally {
-    // Limpiar archivo de lista
-    if (fs.existsSync(listFile)) {
-      fs.unlinkSync(listFile);
+    // Crear patrón de archivos para FFmpeg
+    const tempDir = path.dirname(imageFiles[0]);
+    const pattern = path.join(tempDir, "slide_%03d.png");
+    
+    // Renombrar archivos para seguir el patrón secuencial que FFmpeg espera
+    const renamedFiles = [];
+    for (let i = 0; i < imageFiles.length; i++) {
+      const newName = path.join(tempDir, `slide_${i.toString().padStart(3, '0')}.png`);
+      fs.renameSync(imageFiles[i], newName);
+      renamedFiles.push(newName);
     }
+
+    // Comando FFmpeg usando -framerate (1/3 = una imagen cada 3 segundos)
+    const command = `ffmpeg -framerate 1/3 -i "${pattern}" -c:v libx264 -pix_fmt yuv420p -vf "scale=1280:720" "${outputPath}" -y`;
+
+    console.log("Generando video con FFmpeg usando framerate...");
+    await execPromise(command);
+    
+    // Limpiar archivos renombrados
+    renamedFiles.forEach((file) => {
+      if (fs.existsSync(file)) {
+        fs.unlinkSync(file);
+      }
+    });
+    
+  } catch (error) {
+    console.error("Error en createVideoFromImages:", error.message);
+    throw error;
   }
 }
 
