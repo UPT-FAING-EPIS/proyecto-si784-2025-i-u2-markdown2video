@@ -610,21 +610,9 @@ class MarkdownController {
             error_log("[VIDEO DEBUG] generateVideoWithFFmpeg - Archivo HTML: " . $htmlFile);
             error_log("[VIDEO DEBUG] generateVideoWithFFmpeg - Archivo de salida: " . $outputVideo);
             
-            // Verificar si FFmpeg está disponible
-            $ffmpegCheck = [];
-            $ffmpegReturnCode = 0;
-            exec('which ffmpeg 2>&1', $ffmpegCheck, $ffmpegReturnCode);
-            error_log("[VIDEO DEBUG] FFmpeg disponible: " . ($ffmpegReturnCode === 0 ? 'SÍ' : 'NO'));
-            if ($ffmpegReturnCode === 0) {
-                error_log("[VIDEO DEBUG] Ruta de FFmpeg: " . implode('', $ffmpegCheck));
-            } else {
-                error_log("[VIDEO DEBUG] ERROR: FFmpeg no está disponible en el sistema");
-                return false;
-            }
-            
             // Crear un video simple de 10 segundos como placeholder
             $command = sprintf(
-                'ffmpeg -f lavfi -i color=c=white:size=1280x720:duration=10 -c:v libx264 -pix_fmt yuv420p "%s" -y',
+                'ffmpeg -f lavfi -i color=c=white:size=1280x720:duration=10 -c:v libx264 -pix_fmt yuv420p %s -y',
                 escapeshellarg($outputVideo)
             );
             
