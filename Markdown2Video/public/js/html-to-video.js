@@ -17,7 +17,7 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
     try {
       console.log(`Intento ${attempt}/${retries}: Iniciando conversión HTML a video...`);
 
-      // Verificar que el archivo HTML existe
+      // Verificar  que el archivo HTML existe
       if (!fs.existsSync(htmlFilePath)) {
         throw new Error(`Archivo HTML no encontrado: ${htmlFilePath}`);
       }
