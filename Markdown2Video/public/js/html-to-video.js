@@ -31,7 +31,8 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
                 '--no-first-run',
                 '--no-zygote',
                 '--single-process'
-            ]
+            ],
+            protocolTimeout: 60000  // Aumentar timeout a 60 segundos
         });
         
         const page = await browser.newPage();
@@ -47,7 +48,7 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
         const htmlContent = fs.readFileSync(htmlFilePath, 'utf8');
         await page.setContent(htmlContent, {
             waitUntil: 'networkidle0',
-            timeout: 30000
+            timeout: 60000  // Aumentar de 30000 a 60000
         });
         
         // Esperar a que se cargue completamente
