@@ -45,7 +45,7 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
 
       const page = await browser.newPage();
       
-      // Configurartimeouts
+      // Configurar timeouts
       page.setDefaultTimeout(180000);
       page.setDefaultNavigationTimeout(180000);
 
