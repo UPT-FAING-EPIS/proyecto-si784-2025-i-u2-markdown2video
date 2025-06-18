@@ -179,26 +179,33 @@ async function createVideoFromImages(imageFiles, outputPath) {
   const execPromise = util.promisify(exec);
 
   try {
-    // Crear patrón de archivos para FFmpeg
     const tempDir = path.dirname(imageFiles[0]);
+    // Los archivos ya se nombran como slide_000.png, slide_001.png, etc., por captureSlidesAsVideo.
     const pattern = path.join(tempDir, "slide_%03d.png");
     
-    // Renombrar archivos para seguir el patrón secuencial que FFmpeg espera
-    const renamedFiles = [];
-    for (let i = 0; i < imageFiles.length; i++) {
-      const newName = path.join(tempDir, `slide_${i.toString().padStart(3, '0')}.png`);
-      fs.renameSync(imageFiles[i], newName);
-      renamedFiles.push(newName);
-    }
+    // El bucle de renombrado anterior era redundante y ha sido eliminado.
+    // const renamedFiles = [];
+    // for (let i = 0; i < imageFiles.length; i++) {
+    //   const newName = path.join(tempDir, `slide_${i.toString().padStart(3, '0')}.png`);
+    //   fs.renameSync(imageFiles[i], newName); // Esto renombraba un archivo a sí mismo.
+    //   renamedFiles.push(newName);
+    // }
 
-    // Comando FFmpeg usando -framerate (1/3 = una imagen cada 3 segundos)
-    const command = `ffmpeg -framerate 1/3 -i "${pattern}" -c:v libx264 -pix_fmt yuv420p -vf "scale=1280:720" "${outputPath}" -y`;
+    // Comando FFmpeg actualizado:
+    // -framerate 1/3: Las imágenes de entrada se muestran durante 3 segundos cada una.
+    // -i "${pattern}": Archivos de entrada que coinciden con el patrón.
+    // -r 30: Establece la tasa de fotogramas del video de salida a 30 FPS. FFmpeg duplicará fotogramas según sea necesario.
+    // -c:v libx264: Códec de video.
+    // -pix_fmt yuv420p: Formato de píxeles para compatibilidad.
+    // -vf "scale=1280:720": Escala la salida a 1280x720.
+    // -y: Sobrescribe el archivo de salida si existe.
+    const command = `ffmpeg -framerate 1/3 -i "${pattern}" -r 30 -c:v libx264 -pix_fmt yuv420p -vf "scale=1280:720" "${outputPath}" -y`;
 
-    console.log("Generando video con FFmpeg usando framerate...");
+    console.log("Generando video con FFmpeg. Comando:", command); // Registrar el comando
     await execPromise(command);
     
-    // Limpiar archivos renombrados
-    renamedFiles.forEach((file) => {
+    // Limpiar archivos de imagen temporales (los archivos originales de imageFiles)
+    imageFiles.forEach((file) => { // Usar imageFiles directamente para la limpieza
       if (fs.existsSync(file)) {
         fs.unlinkSync(file);
       }
@@ -206,6 +213,9 @@ async function createVideoFromImages(imageFiles, outputPath) {
     
   } catch (error) {
     console.error("Error en createVideoFromImages:", error.message);
+    // Registrar stdout y stderr de FFmpeg si están disponibles en el error
+    if (error.stdout) console.error("FFmpeg stdout:", error.stdout.toString());
+    if (error.stderr) console.error("FFmpeg stderr:", error.stderr.toString());
     throw error;
   }
 }
