@@ -23,7 +23,7 @@ resource "aws_elastic_beanstalk_environment" "php_app_env" {
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "InstanceType"
-    value     = "t3.micro"
+    value     = "t3.large"
   }
 
   setting {
