@@ -52,7 +52,10 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
         });
         
         // Esperar a que se cargue completamente
-        await page.waitForTimeout(2000);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // En lugar de page.waitForTimeout(500)
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Buscar todas las diapositivas
         const slides = await page.$$('.marp-slide, section, .slide');
