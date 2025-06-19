@@ -150,23 +150,55 @@ async function captureSlidesAsVideo(page, slides, outputPath) {
           `slide_${i.toString().padStart(3, "0")}.png`
         );
 
-        // Hacer scroll a la diapositiva
+        console.log(`[DEBUG] Procesando diapositiva ${i + 1}...`);
+
+        // 1. Verificar que el elemento existe y es visible
+        if (!slide) {
+          console.error(`[ERROR] Diapositiva ${i + 1} no encontrada.`);
+          continue;
+        }
+
+        // 2. Scroll a la diapositiva con verificación
+        console.log(`[DEBUG] Haciendo scroll a diapositiva ${i + 1}...`);
         await slide.scrollIntoView();
-        // Espera con mejor práctica que setTimeout directo
+
+        const slideHTML = await slide.evaluate((el) => el.outerHTML);
+        console.log(
+          `[DEBUG] HTML de diapositiva ${i + 1}:`,
+          slideHTML.substring(0, 100) + "..."
+        );
+
+        // 3. Espera adicional para asegurar que la animación termina
+        console.log(`[DEBUG] Esperando 500ms para transición...`);
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // Capturar screenshot con manejo de errores
+        // 4. Verificar posición después del scroll (opcional, depende del framework)
+        const boundingBox = await slide.boundingBox();
+        if (!boundingBox) {
+          console.error(
+            `[ERROR] Diapositiva ${i + 1} no visible después del scroll.`
+          );
+          continue;
+        }
+        console.log(
+          `[DEBUG] Posición después del scroll: x=${boundingBox.x}, y=${boundingBox.y}`
+        );
+
+        // 5. Capturar screenshot
+        console.log(`[DEBUG] Tomando screenshot de diapositiva ${i + 1}...`);
         await slide.screenshot({
           path: imagePath,
           type: "png",
         });
 
         imageFiles.push(imagePath);
-        console.log(`Capturada diapositiva ${i + 1}/${slides.length}`);
+        console.log(
+          `✅ Capturada diapositiva ${i + 1}/${slides.length} (${imagePath})`
+        );
       } catch (error) {
-        console.error(`Error al procesar diapositiva ${i + 1}:`, error);
-        // Puedes decidir si quieres continuar con las siguientes diapositivas o lanzar el error
-        // throw error; // Descomenta si prefieres detener el proceso
+        console.error(`❌ Error en diapositiva ${i + 1}:`, error.message);
+        console.error("[DEBUG] Stack trace:", error.stack);
+        // throw error; // Descomenta si quieres detener el proceso en caso de error
       }
     }
 
