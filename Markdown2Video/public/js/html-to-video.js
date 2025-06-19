@@ -150,55 +150,49 @@ async function captureSlidesAsVideo(page, slides, outputPath) {
           `slide_${i.toString().padStart(3, "0")}.png`
         );
 
-        console.log(`[DEBUG] Procesando diapositiva ${i + 1}...`);
-
-        // 1. Verificar que el elemento existe y es visible
-        if (!slide) {
-          console.error(`[ERROR] Diapositiva ${i + 1} no encontrada.`);
-          continue;
-        }
-
-        // 2. Scroll a la diapositiva con verificación
-        console.log(`[DEBUG] Haciendo scroll a diapositiva ${i + 1}...`);
-        await slide.scrollIntoView();
-
-        const slideHTML = await slide.evaluate((el) => el.outerHTML);
         console.log(
-          `[DEBUG] HTML de diapositiva ${i + 1}:`,
-          slideHTML.substring(0, 100) + "..."
+          `[DEBUG] Procesando diapositiva ${i + 1} (ID: ${await slide.evaluate(
+            (el) => el.id
+          )})`
         );
 
-        // 3. Espera adicional para asegurar que la animación termina
-        console.log(`[DEBUG] Esperando 500ms para transición...`);
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // 4. Verificar posición después del scroll (opcional, depende del framework)
+        // 1. Forzar scroll manual (alternativa a scrollIntoView)
         const boundingBox = await slide.boundingBox();
         if (!boundingBox) {
-          console.error(
-            `[ERROR] Diapositiva ${i + 1} no visible después del scroll.`
-          );
+          console.error(`[ERROR] Diapositiva ${i + 1} no tiene boundingBox.`);
           continue;
         }
-        console.log(
-          `[DEBUG] Posición después del scroll: x=${boundingBox.x}, y=${boundingBox.y}`
+        await page.evaluate((y) => window.scrollTo(0, y), boundingBox.y);
+
+        // 2. Esperar a que la diapositiva esté en posición
+        await page.waitForFunction(
+          (slideId) => {
+            const slide = document.querySelector(`section[id="${slideId}"]`);
+            return slide && slide.getBoundingClientRect().top >= 0;
+          },
+          { timeout: 3000 },
+          await slide.evaluate((el) => el.id)
         );
 
-        // 5. Capturar screenshot
-        console.log(`[DEBUG] Tomando screenshot de diapositiva ${i + 1}...`);
-        await slide.screenshot({
+        // 3. Verificar estilos (debug)
+        const style = await slide.evaluate((el) => ({
+          position: window.getComputedStyle(el).position,
+          opacity: window.getComputedStyle(el).opacity,
+        }));
+        console.log(`[DEBUG] Estilo de diapositiva ${i + 1}:`, style);
+
+        // 4. Capturar screenshot (viewport completo recortado)
+        await page.screenshot({
           path: imagePath,
           type: "png",
+          clip: boundingBox,
         });
 
         imageFiles.push(imagePath);
-        console.log(
-          `✅ Capturada diapositiva ${i + 1}/${slides.length} (${imagePath})`
-        );
+        console.log(`✅ Capturada diapositiva ${i + 1}/${slides.length}`);
       } catch (error) {
         console.error(`❌ Error en diapositiva ${i + 1}:`, error.message);
-        console.error("[DEBUG] Stack trace:", error.stack);
-        // throw error; // Descomenta si quieres detener el proceso en caso de error
+        throw error; // Detener el proceso si falla
       }
     }
 
