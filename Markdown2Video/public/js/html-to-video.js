@@ -164,12 +164,12 @@ async function captureSlidesAsVideo(page, slides, outputPath) {
     // Crear video desde las imágenes usando FFmpeg
     await createVideoFromImages(imageFiles, outputPath);
   } finally {
-    // Limpiar archivos temporales
-    imageFiles.forEach((file) => {
-      if (fs.existsSync(file)) {
-        fs.unlinkSync(file);
-      }
-    });
+    // // Limpiar archivos temporales
+    // imageFiles.forEach((file) => {
+    //   if (fs.existsSync(file)) {
+    //     fs.unlinkSync(file);
+    //   }
+    // });
   }
 }
 
