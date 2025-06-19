@@ -141,61 +141,75 @@ async function captureSlidesAsVideo(page, slides, outputPath) {
   const imageFiles = [];
 
   try {
-    // Capturar cada diapositiva como imagen
-    for (let i = 0; i < slides.length; i++) {
-      try {
-        const slide = slides[i];
-        const imagePath = path.join(
-          tempDir,
-          `slide_${i.toString().padStart(3, "0")}.png`
-        );
+    const fs = require("fs");
+    const PNG = require("pngjs").PNG;
 
+    for (let i = 0; i < slides.length; i++) {
+      const slide = slides[i];
+      const imagePath = path.join(
+        tempDir,
+        `slide_${i.toString().padStart(3, "0")}.png`
+      );
+
+      try {
         console.log(
           `[DEBUG] Procesando diapositiva ${i + 1} (ID: ${await slide.evaluate(
             (el) => el.id
           )})`
         );
 
-        // 1. Forzar scroll manual (alternativa a scrollIntoView)
-        const boundingBox = await slide.boundingBox();
-        if (!boundingBox) {
-          console.error(`[ERROR] Diapositiva ${i + 1} no tiene boundingBox.`);
-          continue;
-        }
-        await page.evaluate((y) => window.scrollTo(0, y), boundingBox.y);
-
-        // 2. Esperar a que la diapositiva esté en posición
+        // 1. Scroll + espera con verificación
+        await slide.scrollIntoView();
         await page.waitForFunction(
           (slideId) => {
-            const slide = document.querySelector(`section[id="${slideId}"]`);
-            return slide && slide.getBoundingClientRect().top >= 0;
+            const el = document.querySelector(`section[id="${slideId}"]`);
+            return el && el.getBoundingClientRect().top >= 0;
           },
-          { timeout: 3000 },
+          { timeout: 2000 },
           await slide.evaluate((el) => el.id)
         );
 
-        // 3. Verificar estilos (debug)
-        const style = await slide.evaluate((el) => ({
-          position: window.getComputedStyle(el).position,
-          opacity: window.getComputedStyle(el).opacity,
-        }));
-        console.log(`[DEBUG] Estilo de diapositiva ${i + 1}:`, style);
+        // 2. Verificar visibilidad
+        const isVisible = await slide.evaluate((el) => {
+          const style = window.getComputedStyle(el);
+          return style.display !== "none" && style.visibility !== "hidden";
+        });
+        if (!isVisible) throw new Error(`Diapositiva ${i + 1} no visible`);
 
-        // 4. Capturar screenshot (viewport completo recortado)
+        // 3. Forzar reflow y espera
+        await page.evaluate(() => window.dispatchEvent(new Event("scroll")));
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // 4. Capturar screenshot con ajustes
+        const boundingBox = await slide.boundingBox();
         await page.screenshot({
           path: imagePath,
-          type: "png",
-          clip: boundingBox,
+          clip: {
+            x: Math.round(boundingBox.x),
+            y: Math.round(boundingBox.y),
+            width: Math.round(boundingBox.width),
+            height: Math.round(boundingBox.height),
+          },
+          captureBeyondViewport: false,
         });
+
+        // 5. Comparar con la primera diapositiva (debug)
+        if (i > 0) {
+          const areEqual = fs
+            .readFileSync(imagePath)
+            .equals(fs.readFileSync(path.join(tempDir, "slide_000.png")));
+          console.log(
+            `[DEBUG] ¿Captura idéntica a la primera diapositiva? ${areEqual}`
+          );
+        }
 
         imageFiles.push(imagePath);
         console.log(`✅ Capturada diapositiva ${i + 1}/${slides.length}`);
       } catch (error) {
         console.error(`❌ Error en diapositiva ${i + 1}:`, error.message);
-        throw error; // Detener el proceso si falla
+        throw error; // Detiene el proceso para inspección
       }
     }
-
     // Crear video desde las imágenes usando FFmpeg
     await createVideoFromImages(imageFiles, outputPath);
   } finally {
