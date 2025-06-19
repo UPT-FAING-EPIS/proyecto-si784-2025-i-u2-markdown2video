@@ -672,8 +672,7 @@ class MarkdownController {
         }
     }
 
-    private function mdToVideo(string $mdFilePath, string $outputVideoPath): void
-    {
+    private function mdToVideo(string $mdFilePath, string $outputVideoPath): void {
         try {
             error_log('[MARP-VIDEO] Iniciando conversión de Markdown a video');
             error_log('[MARP-VIDEO] Archivo MD de entrada: ' . $mdFilePath);
@@ -683,24 +682,55 @@ class MarkdownController {
             $imagePattern = $tempDir . '/slide_%03d.png';
             
             error_log('[MARP-VIDEO] Convirtiendo Markdown a imágenes PNG');
-            $marpCmd = "sudo marp --image=png --output=$imagePattern $mdFilePath";
-            error_log('[MARP-VIDEO] Comando Marp: ' . $marpCmd);
-            
+            $marpCmd = "sudo marp --html --images png $mdFilePath";
             exec($marpCmd, $output, $returnCode);
+            
             if ($returnCode !== 0) {
-                throw new \Exception("Error en Marp: " . implode("\n", $output));
+                throw new \Exception("Error al generar imágenes PNG con marp: " . implode("\n", $output));
             }
             
-            error_log('[MARP-VIDEO] Convirtiendo imágenes a video MP4');
-            $ffmpegCmd = "ffmpeg -framerate 1/3 -i $imagePattern -r 30 -c:v libx264 -pix_fmt yuv420p -vf \"scale=1280:720\" $outputVideoPath -y";
-            error_log('[MARP-VIDEO] Comando FFmpeg: ' . $ffmpegCmd);
+            // Obtener lista de imágenes PNG generadas
+            $dir = dirname($mdFilePath);
+            $baseName = basename($mdFilePath, '.md');
+            $pngFiles = glob("$dir/$baseName.*.png");
             
+            if (empty($pngFiles)) {
+                throw new \Exception("No se encontraron imágenes PNG generadas");
+            }
+            
+            // Ordenar las imágenes por número de slide
+            natsort($pngFiles);
+            
+            // Crear archivo de lista para ffmpeg
+            $listFile = tempnam(sys_get_temp_dir(), 'marp_video');
+            $listContent = '';
+            
+            foreach ($pngFiles as $pngFile) {
+                $listContent .= "file '$pngFile'\n";
+                $listContent .= "duration 5\n"; // 5 segundos por slide
+            }
+            
+            file_put_contents($listFile, $listContent);
+            
+            // Convertir imágenes a video con ffmpeg
+            $ffmpegCmd = "ffmpeg -f concat -safe 0 -i $listFile -c:v libx264 -pix_fmt yuv420p -y $outputVideoPath";
             exec($ffmpegCmd, $output, $returnCode);
+            
+            unlink($listFile);
+            
             if ($returnCode !== 0) {
-                throw new \Exception("Error en FFmpeg: " . implode("\n", $output));
+                throw new \Exception("Error al convertir imágenes a video: " . implode("\n", $output));
             }
             
-            error_log('[MARP-VIDEO] Video generado exitosamente: ' . $outputVideoPath);
+            // Limpiar imágenes temporales
+            foreach ($pngFiles as $pngFile) {
+                unlink($pngFile);
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'videoPath' => str_replace(ROOT_PATH, BASE_URL, $outputVideoPath)
+            ]);
         } catch (\Exception $e) {
             error_log('[MARP-VIDEO-ERROR] ' . $e->getMessage());
             throw $e;
