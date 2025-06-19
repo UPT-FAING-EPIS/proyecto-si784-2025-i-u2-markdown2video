@@ -146,9 +146,6 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log("[MARP-UI] Respuesta del servidor recibida");
       const result = await response.json();
 
-      const rawResponse = await response.text(); // ← Lee la respuesta como texto
-      console.error("Respuesta cruda del servidor:", rawResponse);
-
       if (result.success) {
         console.log("[MARP-UI] Video generado exitosamente");
         console.log("[MARP-UI] URL del video:", result.videoUrl);
@@ -166,6 +163,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     } catch (error) {
       console.error("[MARP-UI-ERROR] Error en la solicitud:", error);
+      const rawResponse = await response.text();
+      console.log("Respuesta cruda:", rawResponse);
       alert("Error al generar el video. Por favor, inténtalo de nuevo.");
     } finally {
       console.log("[MARP-UI] Finalizando proceso de generación");

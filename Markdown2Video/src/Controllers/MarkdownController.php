@@ -456,17 +456,22 @@ class MarkdownController
             $videoPreviewUrl = BASE_URL . '/public/temp_files/videos/' . $userId . '/' . basename($outputVideoPath);
             error_log("[VIDEO DEBUG] URL de previsualización: " . $videoPreviewUrl);
 
+            $videoFileName = basename($outputVideoPath);
+
+            ob_clean(); // Limpia cualquier buffer de salida
             header('Content-Type: application/json');
             echo json_encode([
-                'success' => true,
+                'success' => true, 
                 'message' => 'Video MP4 generado exitosamente.',
                 'videoUrl' => $videoPreviewUrl,
-                'downloadPageUrl' => BASE_URL . '/markdown/download-video-page/' . urlencode(basename($outputVideoPath))
+                'downloadPageUrl' => BASE_URL . '/markdown/download-video-page/' . urlencode($videoFileName)
             ]);
+            exit;
         } catch (\Exception $e) {
             error_log('[MARP-VIDEO-ERROR] ' . $e->getMessage());
             http_response_code(500);
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
         }
     }
 
