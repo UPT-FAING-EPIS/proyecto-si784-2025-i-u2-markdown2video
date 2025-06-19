@@ -77,6 +77,11 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
       // Buscar todas las diapositivas
       const slides = await page.$$("section, .slide, .marp-slide");
 
+      // Añadir esto después de leer el archivo:
+      console.log("=== CONTENIDO SLIDES ===");
+      console.log(slides);
+      console.log("=====================");
+
       if (slides.length === 0) {
         console.log("No se encontraron diapositivas, capturando página completa...");
         await capturePageAsVideo(page, outputVideoPath);
