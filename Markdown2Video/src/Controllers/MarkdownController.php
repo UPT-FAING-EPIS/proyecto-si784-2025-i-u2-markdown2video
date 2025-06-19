@@ -389,7 +389,7 @@ class MarkdownController {
     /**
      * Genera un video MP4 a partir del contenido Marp
      */
-    public function generateMp4VideoAction()
+    public function generateMp4Video()
     {
         try {
             $markdownContent = $_POST['markdown'] ?? '';
