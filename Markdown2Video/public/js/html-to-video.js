@@ -61,7 +61,6 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
       // Cargar el archivo HTML
       const htmlContent = fs.readFileSync(htmlFilePath, "utf8");
 
-
       await page.setContent(htmlContent, {
         waitUntil: "domcontentloaded",
         timeout: 180000,
@@ -144,42 +143,31 @@ async function captureSlidesAsVideo(page, slides, outputPath) {
   try {
     // Capturar cada diapositiva como imagen
     for (let i = 0; i < slides.length; i++) {
-      const slide = slides[i];
+      try {
+        const slide = slides[i];
+        const imagePath = path.join(
+          tempDir,
+          `slide_${i.toString().padStart(3, "0")}.png`
+        );
 
-      // Hacer scroll a la diapositiva y esperar a que esté completamente visible
-      await slide.scrollIntoView();
-      await page.waitForFunction(
-        (slide) => {
-          const rect = slide.getBoundingClientRect();
-          return (
-            rect.top >= 0 &&
-            rect.left >= 0 &&
-            rect.bottom <=
-              (window.innerHeight || document.documentElement.clientHeight) &&
-            rect.right <=
-              (window.innerWidth || document.documentElement.clientWidth)
-          );
-        },
-        {},
-        slide
-      );
+        // Hacer scroll a la diapositiva
+        await slide.scrollIntoView();
+        // Espera con mejor práctica que setTimeout directo
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Esperar adicionalmente para asegurar que la animación ha terminado
-      await new Promise(resolve => setTimeout(resolve, 1000));
+        // Capturar screenshot con manejo de errores
+        await slide.screenshot({
+          path: imagePath,
+          type: "png",
+        });
 
-      // Capturar screenshot de la diapositiva
-      const imagePath = path.join(
-        tempDir,
-        `slide_${i.toString().padStart(3, "0")}.png`
-      );
-
-      await slide.screenshot({
-        path: imagePath,
-        type: "png",
-      });
-
-      imageFiles.push(imagePath);
-      console.log(`Capturada diapositiva ${i + 1}/${slides.length}`);
+        imageFiles.push(imagePath);
+        console.log(`Capturada diapositiva ${i + 1}/${slides.length}`);
+      } catch (error) {
+        console.error(`Error al procesar diapositiva ${i + 1}:`, error);
+        // Puedes decidir si quieres continuar con las siguientes diapositivas o lanzar el error
+        // throw error; // Descomenta si prefieres detener el proceso
+      }
     }
 
     // Crear video desde las imágenes usando FFmpeg
