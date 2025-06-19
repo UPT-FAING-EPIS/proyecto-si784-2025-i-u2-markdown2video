@@ -461,11 +461,11 @@ class MarkdownController {
                 error_log("[VIDEO DEBUG] Tamaño del archivo de video: " . filesize($outputVideoFile) . " bytes");
             }
             
-            // Limpiar archivo temporal HTML
-            if (file_exists($tempHtmlFile)) {
-                $unlinkResult = unlink($tempHtmlFile);
-                error_log("[VIDEO DEBUG] Limpieza de archivo HTML temporal: " . ($unlinkResult ? 'ÉXITO' : 'ERROR'));
-            }
+            // // Limpiar archivo temporal HTML
+            // if (file_exists($tempHtmlFile)) {
+            //     $unlinkResult = unlink($tempHtmlFile);
+            //     error_log("[VIDEO DEBUG] Limpieza de archivo HTML temporal: " . ($unlinkResult ? 'ÉXITO' : 'ERROR'));
+            // }
             
             if ($success && file_exists($outputVideoFile)) {
                 // Guardar información en sesión
