@@ -136,22 +136,33 @@ document.addEventListener("DOMContentLoaded", function () {
     mp4Button.disabled = true;
 
     try {
-      console.log("[MARP-UI] Enviando contenido al servidor para conversión");
+      console.log("[MARP-UI] Enviando contenido al servidor");
       const response = await fetch("/markdown/generate-mp4-video", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: `markdown=${encodeURIComponent(markdownContent)}`,
       });
 
-      console.log("[MARP-UI] Respuesta del servidor recibida");
-      const result = await response.json();
+      // Lee la respuesta como TEXTO primero (no como JSON)
+      const rawResponse = await response.text();
+      console.log("[MARP-UI] Respuesta cruda:", rawResponse);
 
+      // Intenta parsear manualmente el JSON
+      let result;
+      try {
+        result = JSON.parse(rawResponse);
+      } catch (jsonError) {
+        console.error(
+          "[MARP-UI-ERROR] El servidor no devolvió JSON válido:",
+          jsonError
+        );
+        throw new Error(`Respuesta inválida del servidor: ${rawResponse}`);
+      }
+
+      // Procesa el resultado como antes...
       if (result.success) {
         console.log("[MARP-UI] Video generado exitosamente");
-        console.log("[MARP-UI] URL del video:", result.videoUrl);
         showVideoPreview(result.videoUrl);
-
-        console.log("[MARP-UI] Redirigiendo a página de descarga");
         setTimeout(() => {
           window.location.href = result.downloadPageUrl;
         }, 2000);
@@ -162,10 +173,8 @@ document.addEventListener("DOMContentLoaded", function () {
         );
       }
     } catch (error) {
-      console.error("[MARP-UI-ERROR] Error en la solicitud:", error);
-      const rawResponse = await response.text();
-      console.log("Respuesta cruda:", rawResponse);
-      alert("Error al generar el video. Por favor, inténtalo de nuevo.");
+      console.error("[MARP-UI-ERROR] Error completo:", error);
+      alert("Error al generar el video. Revisa la consola para más detalles.");
     } finally {
       console.log("[MARP-UI] Finalizando proceso de generación");
       mp4Button.textContent = originalText;
