@@ -389,36 +389,56 @@ class MarkdownController {
     /**
      * Genera un video MP4 a partir del contenido Marp
      */
-    public function generateMp4Video(): void {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['markdown'])) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Petición incorrecta']);
-            exit;
-        }
-    
+    public function generateMp4VideoAction()
+    {
         try {
-            $markdownContent = $_POST['markdown'];
+            $markdownContent = $_POST['markdown'] ?? '';
+            
+            error_log('[MARP-VIDEO] Iniciando proceso de generación de video');
+            error_log('[MARP-VIDEO] Longitud del contenido Markdown: ' . strlen($markdownContent) . ' caracteres');
+            
             $userId = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
             $userTempDir = ROOT_PATH . '/public/temp_files/videos/' . $userId . '/';
             
+            error_log('[MARP-VIDEO] Directorio temporal del usuario: ' . $userTempDir);
+            
             if (!is_dir($userTempDir)) {
+                error_log('[MARP-VIDEO] Creando directorio temporal');
                 mkdir($userTempDir, 0775, true);
             }
             
             $mdFilePath = $userTempDir . 'presentation_' . time() . '.md';
             file_put_contents($mdFilePath, $markdownContent);
+            error_log('[MARP-VIDEO] Archivo Markdown temporal creado: ' . $mdFilePath);
             
             $outputVideoPath = $userTempDir . 'video_' . time() . '.mp4';
+            error_log('[MARP-VIDEO] Ruta de salida del video: ' . $outputVideoPath);
             
             // Ejecutar conversión
             $nodePath = ROOT_PATH . '/public/js/html-to-video.js';
-            exec("node $nodePath $mdFilePath $outputVideoPath");
+            error_log('[MARP-VIDEO] Ejecutando conversión con Node.js: ' . $nodePath);
+            
+            $command = "node $nodePath $mdFilePath $outputVideoPath 2>&1";
+            $output = [];
+            $returnCode = 0;
+            exec($command, $output, $returnCode);
+            
+            error_log('[MARP-VIDEO] Resultado del comando (código ' . $returnCode . '): ' . implode("\n", $output));
+            
+            if ($returnCode !== 0) {
+                throw new \Exception("Error en la conversión: " . implode("\n", $output));
+            }
+            
+            error_log('[MARP-VIDEO] Video generado exitosamente en: ' . $outputVideoPath);
             
             echo json_encode([
                 'success' => true,
                 'videoPath' => str_replace(ROOT_PATH, BASE_URL, $outputVideoPath)
             ]);
         } catch (\Exception $e) {
+            error_log('[MARP-VIDEO-ERROR] ' . $e->getMessage());
+            error_log('[MARP-VIDEO-ERROR] Trace: ' . $e->getTraceAsString());
+            
             http_response_code(500);
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
