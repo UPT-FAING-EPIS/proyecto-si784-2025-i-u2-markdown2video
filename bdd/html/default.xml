@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites name="default">
-  <testsuite name="Autenticación de usuarios" tests="2" skipped="0" failures="0" errors="1" time="0.122">
+  <testsuite name="Autenticación de usuarios" tests="2" skipped="0" failures="0" errors="1" time="0.123">
     <testcase name="Buscar usuario por email existente" classname="Autenticación de usuarios" status="passed" time="0.063" file="features/user/user_authentication.feature"></testcase>
     <testcase name="Buscar usuario por username existente" classname="Autenticación de usuarios" status="undefined" time="0.058" file="features/user/user_authentication.feature">
       <error message="Then Debo obtener los datos del usuario incluyendo su username" type="undefined"></error>
