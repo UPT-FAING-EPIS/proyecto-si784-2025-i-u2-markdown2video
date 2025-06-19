@@ -10,14 +10,14 @@ const fs = require("fs");
 const path = require("path");
 
 async function htmlToVideo(htmlFilePath, outputVideoPath) {
-
-
   let browser;
   let retries = 3;
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      console.log(`Intento ${attempt}/${retries}: Iniciando conversión HTML a video...`);
+      console.log(
+        `Intento ${attempt}/${retries}: Iniciando conversión HTML a video...`
+      );
 
       // Verificar  que el archivo HTML existe
       if (!fs.existsSync(htmlFilePath)) {
@@ -39,14 +39,14 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
           "--disable-features=VizDisplayCompositor",
           "--disable-background-timer-throttling",
           "--disable-backgrounding-occluded-windows",
-          "--disable-renderer-backgrounding"
+          "--disable-renderer-backgrounding",
         ],
         protocolTimeout: 180000, // 3 minutos
         timeout: 180000,
       });
 
       const page = await browser.newPage();
-      
+
       // Configurar timeouts
       page.setDefaultTimeout(180000);
       page.setDefaultNavigationTimeout(180000);
@@ -61,11 +61,7 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
       // Cargar el archivo HTML
       const htmlContent = fs.readFileSync(htmlFilePath, "utf8");
 
-      // Añadir esto después de leer el archivo:
-      console.log("=== CONTENIDO HTML ===");
-      console.log(htmlContent);
-      console.log("=====================");
-      
+
       await page.setContent(htmlContent, {
         waitUntil: "domcontentloaded",
         timeout: 180000,
@@ -77,31 +73,10 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
       // Buscar todas las diapositivas
       const slides = await page.$$("section, .slide, .marp-slide");
 
-
-      // Añadir esto después de leer el archivo:
-      console.log("=== CONTENIDO SLIDES ===");
-      console.log(slides);
-      console.log("=====================");
-
-      const isDifferent = await Promise.all(slides.map(async (slide, index) => {
-        const text = await slide.evaluate(el => el.textContent);
-        const html = await slide.evaluate(el => el.outerHTML);
-        return { index, text, html };
-      }));
-      
-      console.log('Diferencias:', isDifferent);
-
-      const positions = await Promise.all(slides.map(slide => 
-        slide.boundingBox()
-      ));
-      
-      const differentPositions = positions.some((pos, i, arr) => 
-        pos.x !== arr[0].x || pos.y !== arr[0].y
-      );
-      console.log('Diferentes posiciones:', differentPositions);
-
       if (slides.length === 0) {
-        console.log("No se encontraron diapositivas, capturando página completa...");
+        console.log(
+          "No se encontraron diapositivas, capturando página completa..."
+        );
         await capturePageAsVideo(page, outputVideoPath);
       } else {
         console.log(`Encontradas ${slides.length} diapositivas`);
@@ -110,22 +85,21 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
 
       console.log(`Video generado exitosamente: ${outputVideoPath}`);
       break; // Salir del bucle si fue exitoso
-      
     } catch (error) {
       console.error(`Error en intento ${attempt}:`, error.message);
-      
+
       if (browser) {
         await browser.close();
         browser = null;
       }
-      
+
       if (attempt === retries) {
         console.error("Todos los intentos fallaron");
         process.exit(1);
       }
-      
+
       // Esperar antes del siguiente intento
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     } finally {
       if (browser) {
         await browser.close();
@@ -172,10 +146,26 @@ async function captureSlidesAsVideo(page, slides, outputPath) {
     for (let i = 0; i < slides.length; i++) {
       const slide = slides[i];
 
-      // Hacer scroll a la diapositiva
+      // Hacer scroll a la diapositiva y esperar a que esté completamente visible
       await slide.scrollIntoView();
-      // En lugar de page.waitForTimeout(500)
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await page.waitForFunction(
+        (slide) => {
+          const rect = slide.getBoundingClientRect();
+          return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <=
+              (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <=
+              (window.innerWidth || document.documentElement.clientWidth)
+          );
+        },
+        {},
+        slide
+      );
+
+      // Esperar adicionalmente para asegurar que la animación ha terminado
+      await page.waitForTimeout(1000);
 
       // Capturar screenshot de la diapositiva
       const imagePath = path.join(
@@ -213,7 +203,7 @@ async function createVideoFromImages(imageFiles, outputPath) {
     const tempDir = path.dirname(imageFiles[0]);
     // Los archivos ya se nombran como slide_000.png, slide_001.png, etc., por captureSlidesAsVideo.
     const pattern = path.join(tempDir, "slide_%03d.png");
-    
+
     // El bucle de renombrado anterior era redundante y ha sido eliminado.
     // const renamedFiles = [];
     // for (let i = 0; i < imageFiles.length; i++) {
@@ -234,14 +224,13 @@ async function createVideoFromImages(imageFiles, outputPath) {
 
     console.log("Generando video con FFmpeg. Comando:", command); // Registrar el comando
     await execPromise(command);
-    
+
     // // Limpiar archivos de imagen temporales (los archivos originales de imageFiles)
     // imageFiles.forEach((file) => { // Usar imageFiles directamente para la limpieza
     //   if (fs.existsSync(file)) {
     //     fs.unlinkSync(file);
     //   }
     // });
-    
   } catch (error) {
     console.error("Error en createVideoFromImages:", error.message);
     // Registrar stdout y stderr de FFmpeg si están disponibles en el error
