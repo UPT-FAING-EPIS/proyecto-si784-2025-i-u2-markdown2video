@@ -679,10 +679,9 @@ class MarkdownController {
             error_log('[MARP-VIDEO] Archivo de video de salida: ' . $outputVideoPath);
             
             $tempDir = dirname($outputVideoPath);
-            $imagePattern = $tempDir . '/slide_%03d.png';
             
             error_log('[MARP-VIDEO] Convirtiendo Markdown a imágenes PNG');
-            $marpCmd = "sudo marp --html --images png $mdFilePath";
+            $marpCmd = "marp --html --images png $mdFilePath";
             exec($marpCmd, $output, $returnCode);
             
             if ($returnCode !== 0) {
