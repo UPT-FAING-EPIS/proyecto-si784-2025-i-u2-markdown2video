@@ -395,41 +395,20 @@ class MarkdownController {
             $markdownContent = $_POST['markdown'] ?? '';
             
             error_log('[MARP-VIDEO] Iniciando proceso de generación de video');
-            error_log('[MARP-VIDEO] Longitud del contenido Markdown: ' . strlen($markdownContent) . ' caracteres');
             
             $userId = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
             $userTempDir = ROOT_PATH . '/public/temp_files/videos/' . $userId . '/';
             
-            error_log('[MARP-VIDEO] Directorio temporal del usuario: ' . $userTempDir);
-            
             if (!is_dir($userTempDir)) {
-                error_log('[MARP-VIDEO] Creando directorio temporal');
                 mkdir($userTempDir, 0775, true);
             }
             
             $mdFilePath = $userTempDir . 'presentation_' . time() . '.md';
             file_put_contents($mdFilePath, $markdownContent);
-            error_log('[MARP-VIDEO] Archivo Markdown temporal creado: ' . $mdFilePath);
             
             $outputVideoPath = $userTempDir . 'video_' . time() . '.mp4';
-            error_log('[MARP-VIDEO] Ruta de salida del video: ' . $outputVideoPath);
             
-            // Ejecutar conversión
-            $nodePath = ROOT_PATH . '/public/js/html-to-video.js';
-            error_log('[MARP-VIDEO] Ejecutando conversión con Node.js: ' . $nodePath);
-            
-            $command = "node $nodePath $mdFilePath $outputVideoPath 2>&1";
-            $output = [];
-            $returnCode = 0;
-            exec($command, $output, $returnCode);
-            
-            error_log('[MARP-VIDEO] Resultado del comando (código ' . $returnCode . '): ' . implode("\n", $output));
-            
-            if ($returnCode !== 0) {
-                throw new \Exception("Error en la conversión: " . implode("\n", $output));
-            }
-            
-            error_log('[MARP-VIDEO] Video generado exitosamente en: ' . $outputVideoPath);
+            $this->mdToVideo($mdFilePath, $outputVideoPath);
             
             echo json_encode([
                 'success' => true,
@@ -437,8 +416,6 @@ class MarkdownController {
             ]);
         } catch (\Exception $e) {
             error_log('[MARP-VIDEO-ERROR] ' . $e->getMessage());
-            error_log('[MARP-VIDEO-ERROR] Trace: ' . $e->getTraceAsString());
-            
             http_response_code(500);
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
@@ -692,6 +669,41 @@ class MarkdownController {
             require_once $viewPath;
         } else {
             $this->showErrorPage("La vista del editor Markdown no se ha encontrado.");
+        }
+    }
+
+    private function mdToVideo(string $mdFilePath, string $outputVideoPath): void
+    {
+        try {
+            error_log('[MARP-VIDEO] Iniciando conversión de Markdown a video');
+            error_log('[MARP-VIDEO] Archivo MD de entrada: ' . $mdFilePath);
+            error_log('[MARP-VIDEO] Archivo de video de salida: ' . $outputVideoPath);
+            
+            $tempDir = dirname($outputVideoPath);
+            $imagePattern = $tempDir . '/slide_%03d.png';
+            
+            error_log('[MARP-VIDEO] Convirtiendo Markdown a imágenes PNG');
+            $marpCmd = "marp --image=png --output=$imagePattern $mdFilePath";
+            error_log('[MARP-VIDEO] Comando Marp: ' . $marpCmd);
+            
+            exec($marpCmd, $output, $returnCode);
+            if ($returnCode !== 0) {
+                throw new \Exception("Error en Marp: " . implode("\n", $output));
+            }
+            
+            error_log('[MARP-VIDEO] Convirtiendo imágenes a video MP4');
+            $ffmpegCmd = "ffmpeg -framerate 1/3 -i $imagePattern -r 30 -c:v libx264 -pix_fmt yuv420p -vf \"scale=1280:720\" $outputVideoPath -y";
+            error_log('[MARP-VIDEO] Comando FFmpeg: ' . $ffmpegCmd);
+            
+            exec($ffmpegCmd, $output, $returnCode);
+            if ($returnCode !== 0) {
+                throw new \Exception("Error en FFmpeg: " . implode("\n", $output));
+            }
+            
+            error_log('[MARP-VIDEO] Video generado exitosamente: ' . $outputVideoPath);
+        } catch (\Exception $e) {
+            error_log('[MARP-VIDEO-ERROR] ' . $e->getMessage());
+            throw $e;
         }
     }
 
