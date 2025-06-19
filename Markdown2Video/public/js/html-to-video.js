@@ -204,12 +204,12 @@ async function createVideoFromImages(imageFiles, outputPath) {
     console.log("Generando video con FFmpeg. Comando:", command); // Registrar el comando
     await execPromise(command);
     
-    // Limpiar archivos de imagen temporales (los archivos originales de imageFiles)
-    imageFiles.forEach((file) => { // Usar imageFiles directamente para la limpieza
-      if (fs.existsSync(file)) {
-        fs.unlinkSync(file);
-      }
-    });
+    // // Limpiar archivos de imagen temporales (los archivos originales de imageFiles)
+    // imageFiles.forEach((file) => { // Usar imageFiles directamente para la limpieza
+    //   if (fs.existsSync(file)) {
+    //     fs.unlinkSync(file);
+    //   }
+    // });
     
   } catch (error) {
     console.error("Error en createVideoFromImages:", error.message);
