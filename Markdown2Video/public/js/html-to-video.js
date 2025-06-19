@@ -10,6 +10,11 @@ const fs = require("fs");
 const path = require("path");
 
 async function htmlToVideo(htmlFilePath, outputVideoPath) {
+  // Añadir esto después de leer el archivo:
+  console.log("=== CONTENIDO HTML ===");
+  console.log(htmlContent);
+  console.log("=====================");
+  
   let browser;
   let retries = 3;
 
