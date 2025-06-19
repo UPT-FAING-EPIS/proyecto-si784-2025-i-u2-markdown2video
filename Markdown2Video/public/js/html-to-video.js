@@ -77,10 +77,28 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
       // Buscar todas las diapositivas
       const slides = await page.$$("section, .slide, .marp-slide");
 
+
       // Añadir esto después de leer el archivo:
       console.log("=== CONTENIDO SLIDES ===");
       console.log(slides);
       console.log("=====================");
+
+      const isDifferent = await Promise.all(slides.map(async (slide, index) => {
+        const text = await slide.evaluate(el => el.textContent);
+        const html = await slide.evaluate(el => el.outerHTML);
+        return { index, text, html };
+      }));
+      
+      console.log('Diferencias:', isDifferent);
+
+      const positions = await Promise.all(slides.map(slide => 
+        slide.boundingBox()
+      ));
+      
+      const differentPositions = positions.some((pos, i, arr) => 
+        pos.x !== arr[0].x || pos.y !== arr[0].y
+      );
+      console.log('Diferentes posiciones:', differentPositions);
 
       if (slides.length === 0) {
         console.log("No se encontraron diapositivas, capturando página completa...");
