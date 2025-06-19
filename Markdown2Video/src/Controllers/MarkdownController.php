@@ -390,116 +390,38 @@ class MarkdownController {
      * Genera un video MP4 a partir del contenido Marp
      */
     public function generateMp4Video(): void {
-        // Log inicial
-        error_log("[VIDEO DEBUG] Iniciando generateMp4Video - Método: " . $_SERVER['REQUEST_METHOD']);
-        error_log("[VIDEO DEBUG] POST data disponible: " . (isset($_POST['markdown']) ? 'SÍ' : 'NO'));
-        
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['markdown'])) {
-            error_log("[VIDEO DEBUG] Error: Petición incorrecta o falta contenido markdown");
-            http_response_code(400); 
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Petición incorrecta o falta contenido markdown.']);
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Petición incorrecta']);
             exit;
         }
     
         try {
             $markdownContent = $_POST['markdown'];
             $userId = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
-            
-            error_log("[VIDEO DEBUG] Usuario ID: " . $userId);
-            error_log("[VIDEO DEBUG] Longitud del contenido markdown: " . strlen($markdownContent));
-            error_log("[VIDEO DEBUG] ROOT_PATH: " . ROOT_PATH);
-            
-            // Crear directorio temporal para el usuario
             $userTempDir = ROOT_PATH . '/public/temp_files/videos/' . $userId . '/';
-            error_log("[VIDEO DEBUG] Directorio temporal del usuario: " . $userTempDir);
-            error_log("[VIDEO DEBUG] Directorio existe: " . (is_dir($userTempDir) ? 'SÍ' : 'NO'));
             
             if (!is_dir($userTempDir)) {
-                error_log("[VIDEO DEBUG] Intentando crear directorio: " . $userTempDir);
-                if (!mkdir($userTempDir, 0775, true) && !is_dir($userTempDir)) {
-                    error_log("[VIDEO DEBUG] ERROR: No se pudo crear el directorio temporal");
-                    throw new \Exception("No se pudo crear el directorio temporal para videos.");
-                }
-                error_log("[VIDEO DEBUG] Directorio creado exitosamente");
+                mkdir($userTempDir, 0775, true);
             }
             
-            // Verificar permisos del directorio
-            error_log("[VIDEO DEBUG] Permisos del directorio: " . substr(sprintf('%o', fileperms($userTempDir)), -4));
-            error_log("[VIDEO DEBUG] Directorio escribible: " . (is_writable($userTempDir) ? 'SÍ' : 'NO'));
+            $mdFilePath = $userTempDir . 'presentation_' . time() . '.md';
+            file_put_contents($mdFilePath, $markdownContent);
             
-            // Generar nombre único para el video
-            $videoFileName = 'marp_video_' . time() . '_' . bin2hex(random_bytes(3)) . '.mp4';
-            $outputVideoFile = $userTempDir . $videoFileName;
-            error_log("[VIDEO DEBUG] Nombre del archivo de video: " . $videoFileName);
-            error_log("[VIDEO DEBUG] Ruta completa del video: " . $outputVideoFile);
+            $outputVideoPath = $userTempDir . 'video_' . time() . '.mp4';
             
-            // Primero, renderizar el HTML de Marp
-            error_log("[VIDEO DEBUG] Iniciando renderizado de Marp a HTML");
-            $htmlContent = $this->renderMarpToHtml($markdownContent);
-            error_log("[VIDEO DEBUG] HTML renderizado - Longitud: " . strlen($htmlContent));
+            // Ejecutar conversión
+            $nodePath = ROOT_PATH . '/public/js/html-to-video.js';
+            exec("node $nodePath $mdFilePath $outputVideoPath");
             
-            // Crear archivo HTML temporal
-            $tempHtmlFile = $userTempDir . 'temp_' . time() . '.html';
-            error_log("[VIDEO DEBUG] Archivo HTML temporal: " . $tempHtmlFile);
-            
-            $fullHtml = $this->prepareHtmlForVideo($htmlContent);
-            error_log("[VIDEO DEBUG] HTML preparado para video - Longitud: " . strlen($fullHtml));
-            
-            $htmlWriteResult = file_put_contents($tempHtmlFile, $fullHtml);
-            error_log("[VIDEO DEBUG] Resultado de escritura HTML: " . ($htmlWriteResult !== false ? 'ÉXITO (' . $htmlWriteResult . ' bytes)' : 'ERROR'));
-            error_log("[VIDEO DEBUG] Archivo HTML existe después de escritura: " . (file_exists($tempHtmlFile) ? 'SÍ' : 'NO'));
-            
-            // Generar video usando Puppeteer/Chrome headless
-            error_log("[VIDEO DEBUG] Iniciando generación de video desde HTML");
-            $success = $this->generateVideoFromHtml($tempHtmlFile, $outputVideoFile);
-            error_log("[VIDEO DEBUG] Resultado de generación de video: " . ($success ? 'ÉXITO' : 'FALLO'));
-            
-            // Verificar si el archivo de video se creó
-            error_log("[VIDEO DEBUG] Archivo de video existe: " . (file_exists($outputVideoFile) ? 'SÍ' : 'NO'));
-            if (file_exists($outputVideoFile)) {
-                error_log("[VIDEO DEBUG] Tamaño del archivo de video: " . filesize($outputVideoFile) . " bytes");
-            }
-            
-            // // Limpiar archivo temporal HTML
-            // if (file_exists($tempHtmlFile)) {
-            //     $unlinkResult = unlink($tempHtmlFile);
-            //     error_log("[VIDEO DEBUG] Limpieza de archivo HTML temporal: " . ($unlinkResult ? 'ÉXITO' : 'ERROR'));
-            // }
-            
-            if ($success && file_exists($outputVideoFile)) {
-                // Guardar información en sesión
-                $_SESSION['video_download_file'] = $videoFileName;
-                $_SESSION['video_download_full_path'] = $outputVideoFile;
-                
-                error_log("[VIDEO DEBUG] Video generado exitosamente - Guardado en sesión");
-                
-                // URL para previsualizar el video
-                $videoPreviewUrl = BASE_URL . '/public/temp_files/videos/' . $userId . '/' . $videoFileName;
-                error_log("[VIDEO DEBUG] URL de previsualización: " . $videoPreviewUrl);
-                
-                header('Content-Type: application/json');
-                echo json_encode([
-                    'success' => true, 
-                    'message' => 'Video MP4 generado exitosamente.',
-                    'videoUrl' => $videoPreviewUrl,
-                    'downloadPageUrl' => BASE_URL . '/markdown/download-video-page/' . urlencode($videoFileName)
-                ]);
-            } else {
-                error_log("[VIDEO DEBUG] ERROR: Fallo en la generación del video o archivo no existe");
-                throw new \Exception("Error al generar el archivo de video.");
-            }
-            
-        } catch (\Throwable $e) {
-            error_log("[VIDEO DEBUG] EXCEPCIÓN CAPTURADA: " . $e->getMessage());
-            error_log("[VIDEO DEBUG] Archivo: " . $e->getFile() . " Línea: " . $e->getLine());
-            error_log("[VIDEO DEBUG] Stack trace: " . $e->getTraceAsString());
-            
+            echo json_encode([
+                'success' => true,
+                'videoPath' => str_replace(ROOT_PATH, BASE_URL, $outputVideoPath)
+            ]);
+        } catch (\Exception $e) {
             http_response_code(500);
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'error' => 'Error interno al generar el video MP4.' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
         }
-        exit;
     }
     
     /**
