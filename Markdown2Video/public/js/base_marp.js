@@ -102,9 +102,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     async function generateMp4Video() {
+        console.log('[MARP-UI] Iniciando generación de video MP4');
         const markdownContent = marpCodeMirrorEditor.getValue();
-        
-        console.log('[MARP-UI] Iniciando generación de video');
         console.log(`[MARP-UI] Longitud del contenido Markdown: ${markdownContent.length} caracteres`);
         
         if (!markdownContent.trim()) {
@@ -113,12 +112,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Mostrar indicador de carga
+        console.log('[MARP-UI] Mostrando indicador de carga');
         const mp4Button = document.querySelector('[data-format="mp4"]');
         const originalText = mp4Button.textContent;
         mp4Button.textContent = 'Generando Video...';
         mp4Button.disabled = true;
-
+    
         try {
             console.log('[MARP-UI] Enviando contenido al servidor para conversión');
             const response = await fetch('/markdown/generate-mp4-video', {
@@ -132,9 +131,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (result.success) {
                 console.log('[MARP-UI] Video generado exitosamente');
+                console.log('[MARP-UI] URL del video:', result.videoUrl);
                 showVideoPreview(result.videoUrl);
                 
-                // Redirigir a la página de descarga después de un momento
+                console.log('[MARP-UI] Redirigiendo a página de descarga');
                 setTimeout(() => {
                     window.location.href = result.downloadPageUrl;
                 }, 2000);
@@ -147,7 +147,6 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Error al generar el video. Por favor, inténtalo de nuevo.');
         } finally {
             console.log('[MARP-UI] Finalizando proceso de generación');
-            // Restaurar el botón
             mp4Button.textContent = originalText;
             mp4Button.disabled = false;
         }

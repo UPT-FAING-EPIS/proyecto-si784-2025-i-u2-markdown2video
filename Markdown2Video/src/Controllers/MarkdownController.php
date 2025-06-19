@@ -391,28 +391,40 @@ class MarkdownController {
      */
     public function generateMp4Video()
     {
+        error_log('[MARP-VIDEO] Iniciando generación de video MP4');
         try {
             $markdownContent = $_POST['markdown'] ?? '';
-            
-            error_log('[MARP-VIDEO] Iniciando proceso de generación de video');
+            error_log('[MARP-VIDEO] Longitud del contenido Markdown recibido: ' . strlen($markdownContent));
             
             $userId = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
+            error_log('[MARP-VIDEO] ID de usuario: ' . $userId);
+            
             $userTempDir = ROOT_PATH . '/public/temp_files/videos/' . $userId . '/';
+            error_log('[MARP-VIDEO] Directorio temporal: ' . $userTempDir);
             
             if (!is_dir($userTempDir)) {
+                error_log('[MARP-VIDEO] Creando directorio temporal');
                 mkdir($userTempDir, 0775, true);
             }
             
             $mdFilePath = $userTempDir . 'presentation_' . time() . '.md';
+            error_log('[MARP-VIDEO] Guardando markdown en: ' . $mdFilePath);
             file_put_contents($mdFilePath, $markdownContent);
             
             $outputVideoPath = $userTempDir . 'video_' . time() . '.mp4';
+            error_log('[MARP-VIDEO] Ruta de salida del video: ' . $outputVideoPath);
             
             $this->mdToVideo($mdFilePath, $outputVideoPath);
+            error_log('[MARP-VIDEO] Video generado exitosamente');
+            
+            // Guardar información del video en sesión para la página de descarga
+            $_SESSION['video_download_file'] = basename($outputVideoPath);
+            $_SESSION['video_download_full_path'] = $outputVideoPath;
             
             echo json_encode([
                 'success' => true,
-                'videoPath' => str_replace(ROOT_PATH, BASE_URL, $outputVideoPath)
+                'videoPath' => str_replace(ROOT_PATH, BASE_URL, $outputVideoPath),
+                'downloadPageUrl' => BASE_URL . '/markdown/download-video/' . urlencode(basename($outputVideoPath))
             ]);
         } catch (\Exception $e) {
             error_log('[MARP-VIDEO-ERROR] ' . $e->getMessage());
