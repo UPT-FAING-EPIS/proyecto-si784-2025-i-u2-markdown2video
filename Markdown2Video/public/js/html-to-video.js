@@ -10,11 +10,8 @@ const fs = require("fs");
 const path = require("path");
 
 async function htmlToVideo(htmlFilePath, outputVideoPath) {
-  // Añadir esto después de leer el archivo:
-  console.log("=== CONTENIDO HTML ===");
-  console.log(htmlContent);
-  console.log("=====================");
-  
+
+
   let browser;
   let retries = 3;
 
@@ -63,6 +60,12 @@ async function htmlToVideo(htmlFilePath, outputVideoPath) {
 
       // Cargar el archivo HTML
       const htmlContent = fs.readFileSync(htmlFilePath, "utf8");
+
+      // Añadir esto después de leer el archivo:
+      console.log("=== CONTENIDO HTML ===");
+      console.log(htmlContent);
+      console.log("=====================");
+      
       await page.setContent(htmlContent, {
         waitUntil: "domcontentloaded",
         timeout: 180000,
