@@ -165,7 +165,7 @@ async function captureSlidesAsVideo(page, slides, outputPath) {
       );
 
       // Esperar adicionalmente para asegurar que la animación ha terminado
-      await page.waitForTimeout(1000);
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Capturar screenshot de la diapositiva
       const imagePath = path.join(
