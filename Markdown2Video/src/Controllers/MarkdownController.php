@@ -420,11 +420,20 @@ class MarkdownController {
             // Guardar información del video en sesión para la página de descarga
             $_SESSION['video_download_file'] = basename($outputVideoPath);
             $_SESSION['video_download_full_path'] = $outputVideoPath;
+
+            error_log("[VIDEO DEBUG] Video generado exitosamente - Guardado en sesión");
+                
+                // URL para previsualizar el video
+                $videoPreviewUrl = BASE_URL . '/public/temp_files/videos/' . $userId . '/' . basename($outputVideoPath);
+                error_log("[VIDEO DEBUG] URL de previsualización: " . $videoPreviewUrl);
             
+            header('Content-Type: application/json');
             echo json_encode([
                 'success' => true,
-                'videoPath' => str_replace(ROOT_PATH, BASE_URL, $outputVideoPath),
-                'downloadPageUrl' => BASE_URL . '/markdown/download-video/' . urlencode(basename($outputVideoPath))
+                'message' => 'Video MP4 generado exitosamente.',
+                'videoUrl' => $videoPreviewUrl,
+                'downloadPageUrl' => BASE_URL . '/markdown/download-video-page/' . urlencode(basename($outputVideoPath)),
+                'videoPath' => str_replace(ROOT_PATH, BASE_URL, $outputVideoPath)
             ]);
         } catch (\Exception $e) {
             error_log('[MARP-VIDEO-ERROR] ' . $e->getMessage());
