@@ -167,7 +167,7 @@ if ($controllerClassName === 'Dales\\Markdown2video\\Controllers\\AuthController
     elseif ($actionName === 'generate-pdf-from-markdown' && $_SERVER['REQUEST_METHOD'] === 'POST') { 
         $methodToCall = 'generatePdfFromMarkdown'; 
     }
-    // --- RUTAS PARA GENERAR HTML DESDE MARKDOWN USANDO MARPCLI ---
+    // --- RUTAS PARA GENERAR HTML  DESDE MARKDOWN USANDO MARPCLI ---
     elseif ($actionName === 'generate-html-from-markdown' && $_SERVER['REQUEST_METHOD'] === 'POST') { 
         $methodToCall = 'generateHtmlFromMarkdown'; 
     }
