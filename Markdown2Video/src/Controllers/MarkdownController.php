@@ -878,7 +878,7 @@ class MarkdownController
             error_log('[MARP-JPG] Patrón de salida de imágenes: ' . $outputPattern);
             
             // Comando para generar imágenes JPG
-            $marpCmd = "marp --images jpg --image-scale 1.5 $mdFilePath -o $userImagesDir";
+            $marpCmd = "marp $mdFilePath --images -o $userImagesDir";
             exec($marpCmd, $output, $returnCode);
 
             if ($returnCode !== 0) {
