@@ -874,11 +874,13 @@ class MarkdownController
             file_put_contents($mdFilePath, $markdownContent);
 
             // Generar imágenes PNG usando MarpCLI
-            $outputPattern = $userImagesDir . 'slide_%d.png';
-            error_log('[MARP-PNG] Patrón de salida de imágenes: ' . $outputPattern);
+            $outputPattern = 'slide-%d.png';
+            $outputFile = $userImagesDir . $outputPattern;
+            error_log('[MARP-PNG] Patrón de salida de imágenes: ' . $outputFile);
             
-            // Comando para generar imágenes PNG
-            $marpCmd = "marp $mdFilePath --images png -o $userImagesDir";
+            // Comando para generar imágenes PNG con nombres específicos
+            $marpCmd = "marp $mdFilePath --images png --image-scale 1.0 --output=$outputFile";
+            error_log('[MARP-PNG] Ejecutando comando: ' . $marpCmd);
             exec($marpCmd, $output, $returnCode);
 
             if ($returnCode !== 0) {
@@ -886,9 +888,17 @@ class MarkdownController
             }
 
             // Verificar que se generaron imágenes
-            $pngFiles = glob("$userImagesDir*.png");
+            $pngFiles = glob("$userImagesDir" . "slide-*.png");
             if (empty($pngFiles)) {
-                throw new \Exception("No se generaron imágenes PNG");
+                error_log('[MARP-PNG] No se encontraron imágenes con patrón: ' . "$userImagesDir" . "slide-*.png");
+                // Intentar buscar con cualquier patrón de PNG como respaldo
+                $pngFiles = glob("$userImagesDir*.png");
+                if (empty($pngFiles)) {
+                    throw new \Exception("No se generaron imágenes PNG");
+                }
+                error_log('[MARP-PNG] Se encontraron ' . count($pngFiles) . ' imágenes con patrón alternativo');
+            } else {
+                error_log('[MARP-PNG] Se encontraron ' . count($pngFiles) . ' imágenes con el patrón esperado');
             }
 
             // Crear archivo ZIP con las imágenes
