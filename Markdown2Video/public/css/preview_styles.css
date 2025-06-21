@@ -1,0 +1,245 @@
+/* public/css/preview_styles.css - Versión Mejorada */
+
+/* Contenedor principal de la vista previa */
+.ppt-preview {
+    /* Usamos una fuente más moderna y legible para documentos */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    font-size: 16px;
+    line-height: 1.7;
+    color: #24292e; /* Color de texto oscuro, pero no negro puro */
+    word-wrap: break-word;
+}
+
+/* --- ESTILOS PARA ELEMENTOS DE MARKDOWN --- */
+
+.ppt-preview > *:first-child {
+    margin-top: 0 !important;
+}
+
+/* Títulos */
+.ppt-preview h1,
+.ppt-preview h2,
+.ppt-preview h3,
+.ppt-preview h4,
+.ppt-preview h5,
+.ppt-preview h6 {
+    margin-top: 24px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.ppt-preview h1 {
+    font-size: 2em;
+    padding-bottom: .3em;
+    border-bottom: 1px solid #dfe2e5; /* Línea separadora sutil */
+}
+
+.ppt-preview h2 {
+    font-size: 1.5em;
+    padding-bottom: .3em;
+    border-bottom: 1px solid #dfe2e5;
+}
+
+.ppt-preview h3 {
+    font-size: 1.25em;
+}
+
+/* Párrafos y texto */
+.ppt-preview p {
+    margin-top: 0;
+    margin-bottom: 16px;
+}
+
+.ppt-preview strong {
+    font-weight: 600;
+}
+
+.ppt-preview em {
+    font-style: italic;
+}
+
+/* Listas */
+.ppt-preview ul,
+.ppt-preview ol {
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding-left: 2em;
+}
+
+/* Citas */
+.ppt-preview blockquote {
+    margin: 0 0 16px 0;
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: .25em solid #dfe2e5;
+}
+
+/* Código */
+.ppt-preview code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    padding: .2em .4em;
+    margin: 0;
+    font-size: 85%;
+    background-color: rgba(27,31,35,.05);
+    border-radius: 6px;
+}
+.ppt-preview pre {
+    padding: 16px;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f6f8fa;
+    border-radius: 6px;
+}
+.ppt-preview pre code {
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
+    border: 0;
+}
+
+/* Tablas */
+.ppt-preview table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 16px 0;
+    display: block;
+    overflow: auto;
+}
+.ppt-preview th,
+.ppt-preview td {
+    padding: 6px 13px;
+    border: 1px solid #dfe2e5;
+}
+.ppt-preview tr {
+    background-color: #fff;
+    border-top: 1px solid #c6cbd1;
+}
+.ppt-preview tr:nth-child(2n) {
+    background-color: #f6f8fa; /* Filas alternas con color */
+}
+.ppt-preview th {
+    font-weight: 600;
+}
+
+/* Líneas horizontales */
+.ppt-preview hr {
+    height: .25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #e1e4e8;
+    border: 0;
+}
+
+/* Enlaces */
+.ppt-preview a {
+    color: #0366d6;
+    text-decoration: none;
+}
+.ppt-preview a:hover {
+    text-decoration: underline;
+}
+
+/* --- ESTILOS PARA IMÁGENES INTERACTIVAS (Mover, Redimensionar, Rotar) --- */
+
+.ppt-preview .interactive-image-container {
+    position: relative; /* Cambiado a relative o absolute por JS */
+    display: inline-block;
+    cursor: move; /* El cursor por defecto sobre la imagen es para mover */
+    border: 1px dashed transparent;
+    transition: border-color 0.2s;
+    min-width: 50px;
+    min-height: 50px;
+}
+
+/* Se muestra el borde al interactuar */
+.ppt-preview .interactive-image-container:hover {
+    border-color: #0d6efd;
+    z-index: 10;
+}
+
+.ppt-preview .interactive-image-container img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    user-select: none; /* Evita que la imagen sea seleccionada como texto al arrastrar */
+    pointer-events: none; /* Los clics pasan a través de la imagen al contenedor */
+}
+
+/* Estilo común para las manijas */
+.ppt-preview .handle {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background-color: #fff;
+    border: 2px solid #0d6efd;
+    border-radius: 50%;
+    box-sizing: border-box;
+    opacity: 0; /* Ocultas por defecto */
+    transition: opacity 0.2s;
+}
+.ppt-preview .interactive-image-container:hover .handle {
+    opacity: 1; /* Se muestran al hacer hover */
+}
+
+/* Manija de Redimensionamiento (esquina inferior derecha) */
+.ppt-preview .resize-handle {
+    bottom: -8px;
+    right: -8px;
+    cursor: nwse-resize;
+}
+
+/* Manija de Rotación (arriba al centro) */
+.ppt-preview .rotate-handle {
+    top: -25px; /* La ponemos un poco por encima */
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: grabbing; /* Un cursor que indica rotación/arrastre */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230d6efd"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>');
+    background-size: cover;
+}
+
+
+/* Manija de redimensionamiento personalizada */
+.ppt-preview .resizable-image-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 15px;
+    height: 15px;
+    background: 
+        linear-gradient(to left top, 
+            transparent 45%, 
+            #0d6efd 45%, 
+            #0d6efd 55%, 
+            transparent 55%),
+        linear-gradient(to left top, 
+            transparent 70%, 
+            #0d6efd 70%, 
+            #0d6efd 80%, 
+            transparent 80%);
+    cursor: nwse-resize;
+}
+
+/* Estilos para los diagramas de Mermaid */
+.mermaid-container {
+    padding: 16px;
+    margin: 1.5em 0;
+    background-color: #f6f8fa;
+    border: 1px solid #dfe2e5;
+    border-radius: 6px;
+    text-align: center;
+    position: relative;
+}
+.mermaid-expand-btn {
+  position: absolute;
+  top: 8px; right: 8px;
+  background-color: #fff; border: 1px solid #ccc;
+  border-radius: 5px; cursor: pointer;
+  padding: 4px 8px; font-size: 1.2em; opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.mermaid-container:hover .mermaid-expand-btn { opacity: 1; }

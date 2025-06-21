@@ -32,6 +32,7 @@ echo "</script>\n";
   <!-- ¡NUEVO! Enlace al nuevo archivo CSS para el modal -->
   <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/modal_and_gallery.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/mermaid.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/preview_styles.css">
   <!-- En el <head> de base_markdown.php -->
 <script src="https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.min.js"></script>
 </head>
@@ -58,7 +59,7 @@ echo "</script>\n";
       <div class="preview-header"><h2>Vista Previa</h2></div>
       <div class="preview-body"><div id="ppt-preview" class="ppt-preview"><p>La vista previa se mostrará aquí...</p></div></div>
       <div class="button-container">
-        <button class="generate-btn" id="generatePdfBtnHtml">Generar PDF (desde Preview)</button>
+        <button class="generate-btn" id="generatePdfBtnHtml">Generar PDF</button>
         <button class="generate-btn" data-action="generate-html">Generar HTML</button>
       </div>
     </div>
@@ -99,20 +100,6 @@ echo "</script>\n";
     </div>
   </div>
 
-  <!-- ¡NUEVO! Modal simple para copiar la sintaxis -->
-  <div id="copySyntaxModal" class="modal-overlay" style="display: none;">
-    <div class="copy-modal-content">
-      <h4>Copiar Sintaxis de Imagen</h4>
-      <p>Usa este código en tu editor para insertar la imagen:</p>
-      <input type="text" id="syntaxToCopy" readonly>
-      <div class="copy-modal-actions">
-        <button id="copySyntaxBtn" class="submit-btn">Copiar</button>
-        <button id="closeCopyModalBtn" class="cancel-btn">Cerrar</button>
-      </div>
-      <small id="copyStatusMessage" class="copy-status"></small>
-    </div>
-  </div>
-
   <!-- ¡NUEVO! Modal para expandir los diagramas de Mermaid -->
   <div id="mermaidModal" class="mermaid-modal-overlay" style="display: none;">
     <div class="mermaid-modal-content">
@@ -129,7 +116,7 @@ echo "</script>\n";
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/addon/edit/continuelist.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/addon/display/placeholder.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  
+  <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/resizable_images.js"></script>
   <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/base_markdown.js"></script>
   <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/mermaid_handler.js"></script>
 </body>

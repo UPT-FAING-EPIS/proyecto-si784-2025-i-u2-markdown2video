@@ -94,7 +94,7 @@ $templates = $templates ?? [];
 
         <!-- Columna Derecha: Plantillas -->
         <div class="templates-section">
-            <h3>...o empieza desde una Plantilla</h3>
+            <h3>...o empieza desde una Plantilla Markdown</h3>
             <div class="templates-container">
                 <div class="templates-row">
                     <?php if (!empty($templates)): ?>
