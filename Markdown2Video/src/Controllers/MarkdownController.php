@@ -886,9 +886,9 @@ class MarkdownController
             }
 
             // Verificar que se generaron imágenes
-            $jpgFiles = glob("$userImagesDir*.jpg");
+            $jpgFiles = glob("$userImagesDir*.png");
             if (empty($jpgFiles)) {
-                throw new \Exception("No se generaron imágenes JPG");
+                throw new \Exception("No se generaron imágenes PNG");
             }
 
             // Crear archivo ZIP con las imágenes

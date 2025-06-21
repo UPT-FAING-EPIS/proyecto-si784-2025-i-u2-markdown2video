@@ -44,7 +44,7 @@ echo "</script>\n";
             <div class="preview-header"><h2>Vista Previa Marp</h2></div>
             <div class="preview-body"><div id="ppt-preview"><p>Escribe en el editor para ver la vista previa...</p></div></div>
             <div class="button-container">
-                <button class="generate-btn" data-format="jpg">Generar JPG</button>
+                <button class="generate-btn" data-format="jpg">Generar PNG</button>
                 <button class="generate-btn" data-format="pdf">Generar PDF</button>
                 <button class="generate-btn" data-format="mp4">Generar Video MP4</button>
                 <button class="generate-btn" data-format="html">Generar HTML</button>
