@@ -906,16 +906,42 @@ class MarkdownController
             $zipFilePath = $userTempDir . $zipFileName;
             error_log('[MARP-PNG] Creando archivo ZIP: ' . $zipFilePath);
 
-            $zip = new \ZipArchive();
-            if ($zip->open($zipFilePath, \ZipArchive::CREATE) !== TRUE) {
-                throw new \Exception("No se pudo crear el archivo ZIP");
-            }
+            // Intentar usar ZipArchive si está disponible
+            if (class_exists('ZipArchive')) {
+                error_log('[MARP-PNG] Usando ZipArchive para crear el ZIP');
+                $zip = new \ZipArchive();
+                if ($zip->open($zipFilePath, \ZipArchive::CREATE) !== TRUE) {
+                    throw new \Exception("No se pudo crear el archivo ZIP con ZipArchive");
+                }
 
-            // Añadir cada imagen al ZIP
-            foreach ($pngFiles as $pngFile) {
-                $zip->addFile($pngFile, basename($pngFile));
+                // Añadir cada imagen al ZIP
+                foreach ($pngFiles as $pngFile) {
+                    $zip->addFile($pngFile, basename($pngFile));
+                }
+                $zip->close();
+            } else {
+                // Alternativa usando el comando zip de línea de comandos
+                error_log('[MARP-PNG] ZipArchive no disponible, usando comando zip');
+                
+                // Cambiar al directorio de imágenes
+                $currentDir = getcwd();
+                chdir($userImagesDir);
+                
+                // Crear un comando zip que incluya todas las imágenes PNG
+                $zipCommand = "zip -j \"$zipFilePath\" *.png";
+                error_log('[MARP-PNG] Ejecutando comando: ' . $zipCommand);
+                
+                exec($zipCommand, $output, $returnCode);
+                
+                // Volver al directorio original
+                chdir($currentDir);
+                
+                if ($returnCode !== 0) {
+                    throw new \Exception("Error al crear el archivo ZIP con el comando zip: " . implode("\n", $output));
+                }
+                
+                error_log('[MARP-PNG] Archivo ZIP creado exitosamente con comando zip');
             }
-            $zip->close();
 
             // Guardar información del ZIP en sesión para la página de descarga
             $_SESSION['jpg_download_file'] = $zipFileName;
