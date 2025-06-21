@@ -163,6 +163,10 @@ if ($controllerClassName === 'Dales\\Markdown2video\\Controllers\\AuthController
     elseif ($actionName === 'generate-pdf-from-html' && $_SERVER['REQUEST_METHOD'] === 'POST') { 
         $methodToCall = 'generatePdfFromHtml'; 
     } 
+    // --- RUTAS PARA GENERAR PDF DESDE MARKDOWN USANDO MARPCLI ---
+    elseif ($actionName === 'generate-pdf-from-markdown' && $_SERVER['REQUEST_METHOD'] === 'POST') { 
+        $methodToCall = 'generatePdfFromMarkdown'; 
+    }
     // --- RUTAS PARA LA PÁGINA DE DESCARGA Y DESCARGA FORZADA (PUEDEN SER LAS MISMAS PARA CUALQUIER PDF) ---
     elseif ($actionName === 'download-page' && $_SERVER['REQUEST_METHOD'] === 'GET') { 
         $methodToCall = 'showPdfDownloadPage'; 

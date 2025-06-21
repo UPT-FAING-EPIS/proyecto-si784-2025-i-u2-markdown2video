@@ -108,6 +108,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (format === "mp4") {
         await generateMp4Video();
+      } else if (format === "pdf") {
+        await generatePdf();
       } else {
         console.log(`Funcionalidad para ${format} no implementada aún.`);
       }
@@ -204,5 +206,66 @@ document.addEventListener("DOMContentLoaded", function () {
     previewContainer.appendChild(videoElement);
   }
 
+  async function generatePdf() {
+    console.log("[MARP-UI] Iniciando generación de PDF");
+    const markdownContent = marpCodeMirrorEditor.getValue();
+    console.log(
+      `[MARP-UI] Longitud del contenido Markdown: ${markdownContent.length} caracteres`
+    );
+
+    if (!markdownContent.trim()) {
+      console.error("[MARP-UI-ERROR] Contenido Markdown vacío");
+      alert(
+        "Por favor, escribe contenido en el editor antes de generar el PDF."
+      );
+      return;
+    }
+
+    console.log("[MARP-UI] Mostrando indicador de carga");
+    const pdfButton = document.querySelector('[data-format="pdf"]');
+    const originalText = pdfButton.textContent;
+    pdfButton.textContent = "Generando PDF...";
+    pdfButton.disabled = true;
+
+    try {
+      console.log("[MARP-UI] Enviando contenido al servidor");
+      const response = await fetch("/markdown/generate-pdf-from-markdown", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `markdown=${encodeURIComponent(markdownContent)}`,
+      });
+
+      const rawResponse = await response.text();
+      console.log("[MARP-UI] Respuesta cruda:", rawResponse);
+
+      let result;
+      try {
+        result = JSON.parse(rawResponse);
+      } catch (jsonError) {
+        console.error(
+          "[MARP-UI-ERROR] El servidor no devolvió JSON válido:",
+          jsonError
+        );
+        throw new Error(`Respuesta inválida del servidor: ${rawResponse}`);
+      }
+
+      if (result.success) {
+        console.log("[MARP-UI] PDF generado exitosamente");
+        window.open(result.downloadPageUrl, "_blank");
+      } else {
+        console.error("[MARP-UI-ERROR] Error en la generación:", result.error);
+        alert(
+          "Error al generar el PDF: " + (result.error || "Error desconocido")
+        );
+      }
+    } catch (error) {
+      console.error("[MARP-UI-ERROR] Error completo:", error);
+      alert("Error al generar el PDF. Revisa la consola para más detalles.");
+    } finally {
+      console.log("[MARP-UI] Finalizando proceso de generación");
+      pdfButton.textContent = originalText;
+      pdfButton.disabled = false;
+    }
+  }
   setTimeout(updateMarpPreview, 100);
 });

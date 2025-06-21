@@ -461,7 +461,7 @@ class MarkdownController
             ob_clean(); // Limpia cualquier buffer de salida
             header('Content-Type: application/json');
             echo json_encode([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Video MP4 generado exitosamente.',
                 'videoUrl' => $videoPreviewUrl,
                 'downloadPageUrl' => BASE_URL . '/markdown/download-video-page/' . urlencode($videoFileName)
@@ -475,143 +475,68 @@ class MarkdownController
         }
     }
 
-    /**
-     * Renderiza contenido Marp a HTML
-     */
-    private function renderMarpToHtml(string $markdownContent): string
-    {
-        // Usar el mismo script de renderizado que ya existe
-        ob_start();
-        $_POST['markdown'] = $markdownContent;
-        $renderScriptPath = ROOT_PATH . '/server/render_marp.php';
-
-        if (file_exists($renderScriptPath)) {
-            include $renderScriptPath;
-        } else {
-            throw new \Exception("Script de renderizado Marp no encontrado.");
-        }
-
-        $htmlResult = ob_get_clean();
-        return $htmlResult;
-    }
-
-    /**
-     * Prepara el HTML para la generación de video
-     */
-    private function prepareHtmlForVideo(string $htmlContent): string
-    {
-        $fullHtml = '<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marp Video</title>
-    <style>
-        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        .marp-slide { width: 1280px; height: 720px; display: flex; flex-direction: column; justify-content: center; align-items: center; page-break-after: always; }
-        @media print { .marp-slide { page-break-after: always; } }
-    </style>
-</head>
-<body>' . $htmlContent . '</body>
-</html>';
-
-        return $fullHtml;
-    }
-
-    /**
-     * Genera video desde HTML usando herramientas externas
-     */
-    private function generateVideoFromHtml(string $htmlFile, string $outputVideo): bool
+    private function mdToVideo(string $mdFilePath, string $outputVideoPath): void
     {
         try {
-            error_log("[VIDEO DEBUG] generateVideoFromHtml - Archivo HTML: " . $htmlFile);
-            error_log("[VIDEO DEBUG] generateVideoFromHtml - Archivo de salida: " . $outputVideo);
-            error_log("[VIDEO DEBUG] generateVideoFromHtml - HTML existe: " . (file_exists($htmlFile) ? 'SÍ' : 'NO'));
+            error_log('[MARP-VIDEO] Iniciando conversión de Markdown a video');
+            error_log('[MARP-VIDEO] Archivo MD de entrada: ' . $mdFilePath);
+            error_log('[MARP-VIDEO] Archivo de video de salida: ' . $outputVideoPath);
 
-            // Verificar si Node.js está disponible
-            $nodeCheck = [];
-            $nodeReturnCode = 0;
-            exec('which node 2>&1', $nodeCheck, $nodeReturnCode);
-            error_log("[VIDEO DEBUG] Node.js disponible: " . ($nodeReturnCode === 0 ? 'SÍ' : 'NO'));
-            if ($nodeReturnCode === 0) {
-                error_log("[VIDEO DEBUG] Ruta de Node.js: " . implode('', $nodeCheck));
+            $tempDir = dirname($outputVideoPath);
+
+            error_log('[MARP-VIDEO] Convirtiendo Markdown a imágenes PNG');
+            $marpCmd = "marp --html --images png $mdFilePath";
+            exec($marpCmd, $output, $returnCode);
+
+            if ($returnCode !== 0) {
+                throw new \Exception("Error al generar imágenes PNG con marp: " . implode("\n", $output));
             }
 
-            // Verificar si el script html-to-video.js existe
-            $scriptPath = ROOT_PATH . '/public/js/html-to-video.js';
-            error_log("[VIDEO DEBUG] Script html-to-video.js existe: " . (file_exists($scriptPath) ? 'SÍ' : 'NO'));
-            error_log("[VIDEO DEBUG] Ruta del script: " . $scriptPath);
+            // Obtener lista de imágenes PNG generadas
+            $dir = dirname($mdFilePath);
+            $baseName = basename($mdFilePath, '.md');
+            $pngFiles = glob("$dir/$baseName.*.png");
 
-            // Comando para generar video usando Puppeteer o similar
-            $command = sprintf(
-                'node %s/public/js/html-to-video.js %s %s',
-                ROOT_PATH,
-                escapeshellarg($htmlFile),
-                escapeshellarg($outputVideo)
-            );
-
-            error_log("[VIDEO DEBUG] Comando a ejecutar: " . $command);
-
-            // Ejecutar comando
-            $output = [];
-            $returnCode = 0;
-            exec($command . ' 2>&1', $output, $returnCode);
-
-            error_log("[VIDEO DEBUG] Código de retorno del comando: " . $returnCode);
-            error_log("[VIDEO DEBUG] Salida del comando: " . implode("\n", $output));
-
-            if ($returnCode === 0 && file_exists($outputVideo)) {
-                error_log("[VIDEO DEBUG] Video generado exitosamente con Node.js/Puppeteer");
-                return true;
-            } else {
-                error_log("[VIDEO DEBUG] Error ejecutando comando de video, intentando fallback con FFmpeg");
-                error_log("[VIDEO DEBUG] Salida completa del error: " . implode("\n", $output));
-
-                // Fallback: crear un video simple usando FFmpeg si está disponible
-                return $this->generateVideoWithFFmpeg($htmlFile, $outputVideo);
+            if (empty($pngFiles)) {
+                throw new \Exception("No se encontraron imágenes PNG generadas");
             }
+
+            // Ordenar las imágenes por número de slide
+            natsort($pngFiles);
+
+            // Crear archivo de lista para ffmpeg
+            $listFile = tempnam(sys_get_temp_dir(), 'marp_video');
+            $listContent = '';
+
+            foreach ($pngFiles as $pngFile) {
+                $listContent .= "file '$pngFile'\n";
+                $listContent .= "duration 5\n"; // 5 segundos por slide
+            }
+
+            file_put_contents($listFile, $listContent);
+
+            // Convertir imágenes a video con ffmpeg
+            $ffmpegCmd = "ffmpeg -f concat -safe 0 -i $listFile -c:v libx264 -pix_fmt yuv420p -y $outputVideoPath";
+            exec($ffmpegCmd, $output, $returnCode);
+
+            unlink($listFile);
+
+            if ($returnCode !== 0) {
+                throw new \Exception("Error al convertir imágenes a video: " . implode("\n", $output));
+            }
+
+            // Limpiar imágenes temporales
+            foreach ($pngFiles as $pngFile) {
+                unlink($pngFile);
+            }
+
+            echo json_encode([
+                'success' => true,
+                'videoPath' => str_replace(ROOT_PATH, BASE_URL, $outputVideoPath)
+            ]);
         } catch (\Exception $e) {
-            error_log("[VIDEO DEBUG] Excepción en generateVideoFromHtml: " . $e->getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Fallback para generar video usando FFmpeg
-     */
-    private function generateVideoWithFFmpeg(string $htmlFile, string $outputVideo): bool
-    {
-        try {
-            error_log("[VIDEO DEBUG] generateVideoWithFFmpeg - Iniciando fallback");
-            error_log("[VIDEO DEBUG] generateVideoWithFFmpeg - Archivo HTML: " . $htmlFile);
-            error_log("[VIDEO DEBUG] generateVideoWithFFmpeg - Archivo de salida: " . $outputVideo);
-
-            // Crear un video simple de 10 segundos como placeholder
-            $command = sprintf(
-                'ffmpeg -f lavfi -i color=c=white:size=1280x720:duration=10 -c:v libx264 -pix_fmt yuv420p %s -y',
-                escapeshellarg($outputVideo)
-            );
-
-            error_log("[VIDEO DEBUG] Comando FFmpeg: " . $command);
-
-            $output = [];
-            $returnCode = 0;
-            exec($command . ' 2>&1', $output, $returnCode);
-
-            error_log("[VIDEO DEBUG] FFmpeg código de retorno: " . $returnCode);
-            error_log("[VIDEO DEBUG] FFmpeg salida: " . implode("\n", $output));
-
-            $success = ($returnCode === 0 && file_exists($outputVideo));
-            error_log("[VIDEO DEBUG] FFmpeg resultado: " . ($success ? 'ÉXITO' : 'FALLO'));
-
-            if (file_exists($outputVideo)) {
-                error_log("[VIDEO DEBUG] Tamaño del video generado por FFmpeg: " . filesize($outputVideo) . " bytes");
-            }
-
-            return $success;
-        } catch (\Exception $e) {
-            error_log("[VIDEO DEBUG] Excepción en generateVideoWithFFmpeg: " . $e->getMessage());
-            return false;
+            error_log('[MARP-VIDEO-ERROR] ' . $e->getMessage());
+            throw $e;
         }
     }
 
@@ -732,68 +657,62 @@ class MarkdownController
         }
     }
 
-    private function mdToVideo(string $mdFilePath, string $outputVideoPath): void
+    /**
+     * Genera un PDF a partir del contenido Markdown usando MarpCLI
+     */
+    public function generatePdfFromMarkdown(): void
     {
+        error_log('[MARP-PDF] Iniciando generación de PDF desde Markdown');
         try {
-            error_log('[MARP-VIDEO] Iniciando conversión de Markdown a video');
-            error_log('[MARP-VIDEO] Archivo MD de entrada: ' . $mdFilePath);
-            error_log('[MARP-VIDEO] Archivo de video de salida: ' . $outputVideoPath);
+            $markdownContent = $_POST['markdown'] ?? '';
+            error_log('[MARP-PDF] Longitud del contenido Markdown recibido: ' . strlen($markdownContent));
 
-            $tempDir = dirname($outputVideoPath);
+            $userId = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
+            error_log('[MARP-PDF] ID de usuario: ' . $userId);
 
-            error_log('[MARP-VIDEO] Convirtiendo Markdown a imágenes PNG');
-            $marpCmd = "marp --html --images png $mdFilePath";
+            $userTempDir = ROOT_PATH . '/public/temp_files/pdfs/' . $userId . '/';
+            error_log('[MARP-PDF] Directorio temporal: ' . $userTempDir);
+
+            if (!is_dir($userTempDir)) {
+                error_log('[MARP-PDF] Creando directorio temporal');
+                mkdir($userTempDir, 0775, true);
+            }
+
+            $mdFilePath = $userTempDir . 'presentation_' . time() . '.md';
+            error_log('[MARP-PDF] Guardando markdown en: ' . $mdFilePath);
+            file_put_contents($mdFilePath, $markdownContent);
+
+            $pdfFileName = 'marp_pdf_' . time() . '.pdf';
+            $outputPdfPath = $userTempDir . $pdfFileName;
+            error_log('[MARP-PDF] Ruta de salida del PDF: ' . $outputPdfPath);
+
+            // Generar PDF usando MarpCLI
+            $marpCmd = "marp --pdf $mdFilePath -o $outputPdfPath";
             exec($marpCmd, $output, $returnCode);
 
             if ($returnCode !== 0) {
-                throw new \Exception("Error al generar imágenes PNG con marp: " . implode("\n", $output));
+                throw new \Exception("Error al generar PDF con marp: " . implode("\n", $output));
             }
 
-            // Obtener lista de imágenes PNG generadas
-            $dir = dirname($mdFilePath);
-            $baseName = basename($mdFilePath, '.md');
-            $pngFiles = glob("$dir/$baseName.*.png");
+            // Guardar información del PDF en sesión para la página de descarga
+            $_SESSION['pdf_download_file'] = $pdfFileName;
+            $_SESSION['pdf_download_full_path'] = $outputPdfPath;
 
-            if (empty($pngFiles)) {
-                throw new \Exception("No se encontraron imágenes PNG generadas");
-            }
+            error_log("[PDF DEBUG] PDF generado exitosamente - Guardado en sesión");
 
-            // Ordenar las imágenes por número de slide
-            natsort($pngFiles);
-
-            // Crear archivo de lista para ffmpeg
-            $listFile = tempnam(sys_get_temp_dir(), 'marp_video');
-            $listContent = '';
-
-            foreach ($pngFiles as $pngFile) {
-                $listContent .= "file '$pngFile'\n";
-                $listContent .= "duration 5\n"; // 5 segundos por slide
-            }
-
-            file_put_contents($listFile, $listContent);
-
-            // Convertir imágenes a video con ffmpeg
-            $ffmpegCmd = "ffmpeg -f concat -safe 0 -i $listFile -c:v libx264 -pix_fmt yuv420p -y $outputVideoPath";
-            exec($ffmpegCmd, $output, $returnCode);
-
-            unlink($listFile);
-
-            if ($returnCode !== 0) {
-                throw new \Exception("Error al convertir imágenes a video: " . implode("\n", $output));
-            }
-
-            // Limpiar imágenes temporales
-            foreach ($pngFiles as $pngFile) {
-                unlink($pngFile);
-            }
-
+            ob_clean(); // Limpia cualquier buffer de salida
+            header('Content-Type: application/json');
             echo json_encode([
                 'success' => true,
-                'videoPath' => str_replace(ROOT_PATH, BASE_URL, $outputVideoPath)
+                'message' => 'PDF generado exitosamente.',
+                'downloadPageUrl' => BASE_URL . '/markdown/download-page/' . urlencode($pdfFileName)
             ]);
+            exit;
         } catch (\Exception $e) {
-            error_log('[MARP-VIDEO-ERROR] ' . $e->getMessage());
-            throw $e;
+            error_log('[MARP-PDF-ERROR] ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
         }
     }
 }
