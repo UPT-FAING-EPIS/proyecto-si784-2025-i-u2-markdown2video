@@ -110,6 +110,8 @@ document.addEventListener("DOMContentLoaded", function () {
         await generateMp4Video();
       } else if (format === "pdf") {
         await generatePdf();
+      } else if (format === "html") {
+        await generateHtml();
       } else {
         console.log(`Funcionalidad para ${format} no implementada aún.`);
       }
@@ -265,6 +267,67 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log("[MARP-UI] Finalizando proceso de generación");
       pdfButton.textContent = originalText;
       pdfButton.disabled = false;
+    }
+  }
+  async function generateHtml() {
+    console.log("[MARP-UI] Iniciando generación de HTML");
+    const markdownContent = marpCodeMirrorEditor.getValue();
+    console.log(
+      `[MARP-UI] Longitud del contenido Markdown: ${markdownContent.length} caracteres`
+    );
+
+    if (!markdownContent.trim()) {
+      console.error("[MARP-UI-ERROR] Contenido Markdown vacío");
+      alert(
+        "Por favor, escribe contenido en el editor antes de generar el HTML."
+      );
+      return;
+    }
+
+    console.log("[MARP-UI] Mostrando indicador de carga");
+    const htmlButton = document.querySelector('[data-format="html"]');
+    const originalText = htmlButton.textContent;
+    htmlButton.textContent = "Generando HTML...";
+    htmlButton.disabled = true;
+
+    try {
+      console.log("[MARP-UI] Enviando contenido al servidor");
+      const response = await fetch("/markdown/generate-html-from-markdown", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `markdown=${encodeURIComponent(markdownContent)}`,
+      });
+
+      const rawResponse = await response.text();
+      console.log("[MARP-UI] Respuesta cruda:", rawResponse);
+
+      let result;
+      try {
+        result = JSON.parse(rawResponse);
+      } catch (jsonError) {
+        console.error(
+          "[MARP-UI-ERROR] El servidor no devolvió JSON válido:",
+          jsonError
+        );
+        throw new Error(`Respuesta inválida del servidor: ${rawResponse}`);
+      }
+
+      if (result.success) {
+        console.log("[MARP-UI] HTML generado exitosamente");
+        window.open(result.downloadPageUrl, "_blank");
+      } else {
+        console.error("[MARP-UI-ERROR] Error en la generación:", result.error);
+        alert(
+          "Error al generar el HTML: " + (result.error || "Error desconocido")
+        );
+      }
+    } catch (error) {
+      console.error("[MARP-UI-ERROR] Error completo:", error);
+      alert("Error al generar el HTML. Revisa la consola para más detalles.");
+    } finally {
+      console.log("[MARP-UI] Finalizando proceso de generación");
+      htmlButton.textContent = originalText;
+      htmlButton.disabled = false;
     }
   }
   setTimeout(updateMarpPreview, 100);

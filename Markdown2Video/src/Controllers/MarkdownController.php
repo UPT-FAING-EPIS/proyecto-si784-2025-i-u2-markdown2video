@@ -715,4 +715,126 @@ class MarkdownController
             exit;
         }
     }
+
+    /**
+     * Genera un archivo HTML a partir del contenido Markdown usando MarpCLI
+     */
+    public function generateHtmlFromMarkdown(): void
+    {
+        error_log('[MARP-HTML] Iniciando generación de HTML desde Markdown');
+        try {
+            $markdownContent = $_POST['markdown'] ?? '';
+            error_log('[MARP-HTML] Longitud del contenido Markdown recibido: ' . strlen($markdownContent));
+
+            $userId = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
+            error_log('[MARP-HTML] ID de usuario: ' . $userId);
+
+            $userTempDir = ROOT_PATH . '/public/temp_files/html/' . $userId . '/';
+            error_log('[MARP-HTML] Directorio temporal: ' . $userTempDir);
+
+            if (!is_dir($userTempDir)) {
+                error_log('[MARP-HTML] Creando directorio temporal');
+                mkdir($userTempDir, 0775, true);
+            }
+
+            $mdFilePath = $userTempDir . 'presentation_' . time() . '.md';
+            error_log('[MARP-HTML] Guardando markdown en: ' . $mdFilePath);
+            file_put_contents($mdFilePath, $markdownContent);
+
+            $htmlFileName = 'marp_html_' . time() . '.html';
+            $outputHtmlPath = $userTempDir . $htmlFileName;
+            error_log('[MARP-HTML] Ruta de salida del HTML: ' . $outputHtmlPath);
+
+            // Generar HTML usando MarpCLI
+            $marpCmd = "marp --html $mdFilePath -o $outputHtmlPath";
+            exec($marpCmd, $output, $returnCode);
+
+            if ($returnCode !== 0) {
+                throw new \Exception("Error al generar HTML con marp: " . implode("\n", $output));
+            }
+
+            // Guardar información del HTML en sesión para la página de descarga
+            $_SESSION['html_download_file'] = $htmlFileName;
+            $_SESSION['html_download_full_path'] = $outputHtmlPath;
+
+            error_log("[HTML DEBUG] HTML generado exitosamente - Guardado en sesión");
+
+            ob_clean(); // Limpia cualquier buffer de salida
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'message' => 'HTML generado exitosamente.',
+                'downloadPageUrl' => BASE_URL . '/markdown/download-html-page/' . urlencode($htmlFileName)
+            ]);
+            exit;
+        } catch (\Exception $e) {
+            error_log('[MARP-HTML-ERROR] ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
+    }
+
+    /**
+     * Muestra la página de descarga para archivos HTML generados
+     */
+    public function showHtmlDownloadPage(): void
+    {
+        $base_url = BASE_URL;
+        $pageTitle = "Descargar Presentación HTML";
+
+        // Obtener el nombre del archivo de la URL
+        $urlSegments = explode('/', trim($_SERVER['REQUEST_URI'], '/'));
+        $encodedFilename = end($urlSegments);
+        $filename = urldecode($encodedFilename);
+
+        // Verificar que el archivo existe en la sesión
+        if (isset($_SESSION['html_download_file']) && $_SESSION['html_download_file'] === $filename) {
+            $downloadLink = BASE_URL . '/markdown/force-download-html/' . $encodedFilename;
+            $actual_filename = $filename;
+
+            // Usar la misma vista que para PDF pero con título y enlaces adaptados
+            require_once VIEWS_PATH . 'download_pdf.php';
+        } else {
+            $this->showErrorPage("Archivo HTML no encontrado o sesión expirada.");
+        }
+    }
+
+    /**
+     * Fuerza la descarga del archivo HTML generado
+     */
+    public function forceDownloadHtml(): void
+    {
+        // Obtener el nombre del archivo de la URL
+        $urlSegments = explode('/', trim($_SERVER['REQUEST_URI'], '/'));
+        $encodedFilename = end($urlSegments);
+        $filename = urldecode($encodedFilename);
+
+        // Verificar que el archivo existe en la sesión
+        if (isset($_SESSION['html_download_file']) && 
+            $_SESSION['html_download_file'] === $filename && 
+            isset($_SESSION['html_download_full_path']) && 
+            file_exists($_SESSION['html_download_full_path'])) {
+
+            $currentDiskPath = $_SESSION['html_download_full_path'];
+
+            // Configurar cabeceras para forzar descarga
+            header('Content-Type: text/html');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . filesize($currentDiskPath));
+            flush();
+            readfile($currentDiskPath);
+            // No eliminamos el archivo para permitir descargas múltiples
+            // unlink($currentDiskPath);
+            // unset($_SESSION['html_download_file'], $_SESSION['html_download_full_path']);
+            exit;
+        } else {
+            http_response_code(404);
+            echo "Archivo HTML no encontrado o acceso no autorizado.";
+            exit;
+        }
+    }
 }

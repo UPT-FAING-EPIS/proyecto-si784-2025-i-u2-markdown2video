@@ -167,11 +167,21 @@ if ($controllerClassName === 'Dales\\Markdown2video\\Controllers\\AuthController
     elseif ($actionName === 'generate-pdf-from-markdown' && $_SERVER['REQUEST_METHOD'] === 'POST') { 
         $methodToCall = 'generatePdfFromMarkdown'; 
     }
+    // --- RUTAS PARA GENERAR HTML DESDE MARKDOWN USANDO MARPCLI ---
+    elseif ($actionName === 'generate-html-from-markdown' && $_SERVER['REQUEST_METHOD'] === 'POST') { 
+        $methodToCall = 'generateHtmlFromMarkdown'; 
+    }
     // --- RUTAS PARA LA PÁGINA DE DESCARGA Y DESCARGA FORZADA (PUEDEN SER LAS MISMAS PARA CUALQUIER PDF) ---
     elseif ($actionName === 'download-page' && $_SERVER['REQUEST_METHOD'] === 'GET') { 
         $methodToCall = 'showPdfDownloadPage'; 
     } elseif ($actionName === 'force-download-pdf' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         $methodToCall = 'forceDownloadPdf';
+    }
+    // --- RUTAS PARA LA PÁGINA DE DESCARGA Y DESCARGA FORZADA DE HTML ---
+    elseif ($actionName === 'download-html-page' && $_SERVER['REQUEST_METHOD'] === 'GET') { 
+        $methodToCall = 'showHtmlDownloadPage'; 
+    } elseif ($actionName === 'force-download-html' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $methodToCall = 'forceDownloadHtml';
     }
     // --- ¡NUEVAS RUTAS DE IMÁGENES EN MARKDOWNCONTROLLER! ---
     elseif ($actionName === 'upload-image' && $_SERVER['REQUEST_METHOD'] === 'POST') {
