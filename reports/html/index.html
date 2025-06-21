@@ -1,0 +1,47 @@
+
+            <html>
+                <head>
+                    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+                    <style>body{ margin:0 100; background:whitesmoke; }</style>
+                </head>
+<!-- 
+{
+  "meta": {
+    "commit_author": null,
+    "commit_branch": null,
+    "commit_date": null,
+    "commit_sha": null,
+    "commit_title": null,
+    "filtered_message_count": 22,
+    "mr_iid": null,
+    "mr_source_branch": null,
+    "mr_target_branch": null,
+    "mr_title": null,
+    "pipeline_date": null,
+    "pipeline_job_date": null,
+    "pipeline_job_image": null,
+    "pipeline_job_name": null,
+    "pipeline_job_stage": null,
+    "pipeline_job_started_by_email": null,
+    "pipeline_job_started_by_id": null,
+    "pipeline_job_started_by_login": null,
+    "pipeline_job_started_by_name": null,
+    "pipeline_job_url": null,
+    "pipeline_project_group": null,
+    "pipeline_project_group_root": null,
+    "pipeline_project_name": null,
+    "pipeline_project_path": null,
+    "pipeline_project_path_slug": null,
+    "pipeline_project_url": null,
+    "pipeline_server_url": null,
+    "pipeline_url": null,
+    "report_date": "2025-06-21 04:37:21.940544",
+    "report_from_ci": false,
+    "total_message_count": 22
+  }
+}
+-->
+                <body>
+            <table id="info-table" class="table table-bordered table-hover"><thead><tr><th>tool</th><th>code</th><th>severity</th><th>confidence</th><th>function</th><th>file</th><th>line</th><th>position</th><th>message</th></tr></thead><tbody><tr><td>semgrep</td><td>generic.secrets.security.detected-bcrypt-hash.detected-bcrypt-hash</td><td>ERROR</td><td>LOW</td><td>unknown</td><td>Markdown2Video/bd_markdown2video.sql</td><td>35</td><td>39</td><td>bcrypt hash detected</td></tr><tr><td>semgrep</td><td>php.lang.security.injection.tainted-object-instantiation.tainted-object-instantiation</td><td>WARNING</td><td>MEDIUM</td><td>unknown</td><td>Markdown2Video/index.php</td><td>219</td><td>39</td><td>&lt;- A new object is created where the class name is based on user input. This could lead to remote code execution, as it allows to instantiate any class in the application.</td></tr><tr><td>semgrep</td><td>php.lang.security.injection.tainted-object-instantiation.tainted-object-instantiation</td><td>WARNING</td><td>MEDIUM</td><td>unknown</td><td>Markdown2Video/index.php</td><td>221</td><td>39</td><td>&lt;- A new object is created where the class name is based on user input. This could lead to remote code execution, as it allows to instantiate any class in the application.</td></tr><tr><td>semgrep</td><td>php.lang.security.injection.tainted-callable.tainted-callable</td><td>WARNING</td><td>MEDIUM</td><td>unknown</td><td>Markdown2Video/index.php</td><td>225</td><td>34</td><td>Callable based on user input risks remote code execution.</td></tr><tr><td>semgrep</td><td>php.lang.security.phpinfo-use.phpinfo-use</td><td>ERROR</td><td>MEDIUM</td><td>unknown</td><td>Markdown2Video/public/check_gd.php</td><td>2</td><td>1</td><td>The &#x27;phpinfo&#x27; function may reveal sensitive information about your environment.</td></tr><tr><td>semgrep</td><td>javascript.browser.security.insecure-document-method.insecure-document-method</td><td>ERROR</td><td>LOW</td><td>unknown</td><td>Markdown2Video/public/js/base_markdown.js</td><td>69</td><td>17</td><td>User controlled data in methods like `innerHTML`, `outerHTML` or `document.write` is an anti-pattern that can lead to XSS vulnerabilities</td></tr><tr><td>semgrep</td><td>javascript.browser.security.insecure-document-method.insecure-document-method</td><td>ERROR</td><td>LOW</td><td>unknown</td><td>Markdown2Video/public/js/base_markdown.js</td><td>120</td><td>17</td><td>User controlled data in methods like `innerHTML`, `outerHTML` or `document.write` is an anti-pattern that can lead to XSS vulnerabilities</td></tr><tr><td>semgrep</td><td>javascript.browser.security.insecure-document-method.insecure-document-method</td><td>ERROR</td><td>LOW</td><td>unknown</td><td>Markdown2Video/public/js/base_markdown.js</td><td>130</td><td>27</td><td>User controlled data in methods like `innerHTML`, `outerHTML` or `document.write` is an anti-pattern that can lead to XSS vulnerabilities</td></tr><tr><td>semgrep</td><td>javascript.browser.security.insecure-document-method.insecure-document-method</td><td>ERROR</td><td>LOW</td><td>unknown</td><td>Markdown2Video/public/js/base_marp.js</td><td>70</td><td>9</td><td>User controlled data in methods like `innerHTML`, `outerHTML` or `document.write` is an anti-pattern that can lead to XSS vulnerabilities</td></tr><tr><td>semgrep</td><td>javascript.browser.security.insecure-document-method.insecure-document-method</td><td>ERROR</td><td>LOW</td><td>unknown</td><td>Markdown2Video/public/js/base_marp.js</td><td>75</td><td>9</td><td>User controlled data in methods like `innerHTML`, `outerHTML` or `document.write` is an anti-pattern that can lead to XSS vulnerabilities</td></tr><tr><td>semgrep</td><td>javascript.browser.security.insecure-document-method.insecure-document-method</td><td>ERROR</td><td>LOW</td><td>unknown</td><td>Markdown2Video/public/js/mermaid_handler.js</td><td>59</td><td>17</td><td>User controlled data in methods like `innerHTML`, `outerHTML` or `document.write` is an anti-pattern that can lead to XSS vulnerabilities</td></tr><tr><td>semgrep</td><td>javascript.lang.security.audit.unsafe-formatstring.unsafe-formatstring</td><td>INFO</td><td>LOW</td><td>unknown</td><td>Markdown2Video/public/js/mermaid_handler.js</td><td>71</td><td>27</td><td>Detected string concatenation with a non-literal variable in a util.format / console.log function. If an attacker injects a format specifier in the string, it will forge the log message. Try to use constant values for the format string.</td></tr><tr><td>semgrep</td><td>php.lang.security.unlink-use.unlink-use</td><td>WARNING</td><td>LOW</td><td>unknown</td><td>Markdown2Video/server/render_marp.php</td><td>65</td><td>34</td><td>Using user input when deleting files with `unlink()` is potentially dangerous. A malicious actor could use this to modify or access files they have no right to.</td></tr><tr><td>semgrep</td><td>php.lang.security.exec-use.exec-use</td><td>ERROR</td><td>LOW</td><td>unknown</td><td>Markdown2Video/server/render_marp.php</td><td>82</td><td>1</td><td>Executing non-constant commands. This can lead to command injection.</td></tr><tr><td>semgrep</td><td>php.lang.security.unlink-use.unlink-use</td><td>WARNING</td><td>LOW</td><td>unknown</td><td>Markdown2Video/server/render_marp.php</td><td>98</td><td>5</td><td>Using user input when deleting files with `unlink()` is potentially dangerous. A malicious actor could use this to modify or access files they have no right to.</td></tr><tr><td>semgrep</td><td>php.lang.security.unlink-use.unlink-use</td><td>WARNING</td><td>LOW</td><td>unknown</td><td>Markdown2Video/src/Controllers/MarkdownController.php</td><td>408</td><td>13</td><td>Using user input when deleting files with `unlink()` is potentially dangerous. A malicious actor could use this to modify or access files they have no right to.</td></tr><tr><td>semgrep</td><td>php.lang.security.exec-use.exec-use</td><td>ERROR</td><td>LOW</td><td>unknown</td><td>Markdown2Video/src/Controllers/MarkdownController.php</td><td>489</td><td>13</td><td>Executing non-constant commands. This can lead to command injection.</td></tr><tr><td>semgrep</td><td>php.lang.security.exec-use.exec-use</td><td>ERROR</td><td>LOW</td><td>unknown</td><td>Markdown2Video/src/Controllers/MarkdownController.php</td><td>520</td><td>13</td><td>Executing non-constant commands. This can lead to command injection.</td></tr><tr><td>semgrep</td><td>php.lang.security.unlink-use.unlink-use</td><td>WARNING</td><td>LOW</td><td>unknown</td><td>Markdown2Video/src/Controllers/MarkdownController.php</td><td>522</td><td>13</td><td>Using user input when deleting files with `unlink()` is potentially dangerous. A malicious actor could use this to modify or access files they have no right to.</td></tr><tr><td>semgrep</td><td>php.lang.security.unlink-use.unlink-use</td><td>WARNING</td><td>LOW</td><td>unknown</td><td>Markdown2Video/src/Controllers/MarkdownController.php</td><td>530</td><td>17</td><td>Using user input when deleting files with `unlink()` is potentially dangerous. A malicious actor could use this to modify or access files they have no right to.</td></tr><tr><td>semgrep</td><td>php.lang.security.unlink-use.unlink-use</td><td>WARNING</td><td>LOW</td><td>unknown</td><td>Markdown2Video/src/Controllers/MarkdownController.php</td><td>591</td><td>13</td><td>Using user input when deleting files with `unlink()` is potentially dangerous. A malicious actor could use this to modify or access files they have no right to.</td></tr><tr><td>semgrep</td><td>php.lang.security.exec-use.exec-use</td><td>ERROR</td><td>LOW</td><td>unknown</td><td>Markdown2Video/src/Controllers/MarkdownController.php</td><td>691</td><td>13</td><td>Executing non-constant commands. This can lead to command injection.</td></tr></tbody></table>
+                </body>
+            </html>
