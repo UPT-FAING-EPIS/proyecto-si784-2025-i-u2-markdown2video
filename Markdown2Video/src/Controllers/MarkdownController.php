@@ -839,62 +839,62 @@ class MarkdownController
     }
     
     /**
-     * Genera imágenes JPG a partir del contenido Markdown usando MarpCLI
+     * Genera imágenes PNG a partir del contenido Markdown usando MarpCLI
      * y las comprime en un archivo ZIP para su descarga
      */
     public function generateJpgFromMarkdown(): void
     {
-        error_log('[MARP-JPG] Iniciando generación de JPG desde Markdown');
+        error_log('[MARP-PNG] Iniciando generación de PNG desde Markdown');
         try {
             $markdownContent = $_POST['markdown'] ?? '';
-            error_log('[MARP-JPG] Longitud del contenido Markdown recibido: ' . strlen($markdownContent));
+            error_log('[MARP-PNG] Longitud del contenido Markdown recibido: ' . strlen($markdownContent));
 
             $userId = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
-            error_log('[MARP-JPG] ID de usuario: ' . $userId);
+            error_log('[MARP-PNG] ID de usuario: ' . $userId);
 
             // Crear directorios temporales para imágenes y ZIP
-            $userTempDir = ROOT_PATH . '/public/temp_files/jpg/' . $userId . '/';
+            $userTempDir = ROOT_PATH . '/public/temp_files/png/' . $userId . '/';
             $userImagesDir = $userTempDir . 'images_' . time() . '/';
-            error_log('[MARP-JPG] Directorio temporal: ' . $userTempDir);
-            error_log('[MARP-JPG] Directorio de imágenes: ' . $userImagesDir);
+            error_log('[MARP-PNG] Directorio temporal: ' . $userTempDir);
+            error_log('[MARP-PNG] Directorio de imágenes: ' . $userImagesDir);
 
             if (!is_dir($userTempDir)) {
-                error_log('[MARP-JPG] Creando directorio temporal');
+                error_log('[MARP-PNG] Creando directorio temporal');
                 mkdir($userTempDir, 0775, true);
             }
             
             if (!is_dir($userImagesDir)) {
-                error_log('[MARP-JPG] Creando directorio de imágenes');
+                error_log('[MARP-PNG] Creando directorio de imágenes');
                 mkdir($userImagesDir, 0775, true);
             }
 
             // Guardar el markdown en un archivo temporal
             $mdFilePath = $userTempDir . 'presentation_' . time() . '.md';
-            error_log('[MARP-JPG] Guardando markdown en: ' . $mdFilePath);
+            error_log('[MARP-PNG] Guardando markdown en: ' . $mdFilePath);
             file_put_contents($mdFilePath, $markdownContent);
 
-            // Generar imágenes JPG usando MarpCLI
-            $outputPattern = $userImagesDir . 'slide_%d.jpg';
-            error_log('[MARP-JPG] Patrón de salida de imágenes: ' . $outputPattern);
+            // Generar imágenes PNG usando MarpCLI
+            $outputPattern = $userImagesDir . 'slide_%d.png';
+            error_log('[MARP-PNG] Patrón de salida de imágenes: ' . $outputPattern);
             
-            // Comando para generar imágenes JPG
-            $marpCmd = "marp $mdFilePath --images -o $userImagesDir";
+            // Comando para generar imágenes PNG
+            $marpCmd = "marp $mdFilePath --images png -o $userImagesDir";
             exec($marpCmd, $output, $returnCode);
 
             if ($returnCode !== 0) {
-                throw new \Exception("Error al generar imágenes JPG con marp: " . implode("\n", $output));
+                throw new \Exception("Error al generar imágenes PNG con marp: " . implode("\n", $output));
             }
 
             // Verificar que se generaron imágenes
-            $jpgFiles = glob("$userImagesDir*.png");
-            if (empty($jpgFiles)) {
+            $pngFiles = glob("$userImagesDir*.png");
+            if (empty($pngFiles)) {
                 throw new \Exception("No se generaron imágenes PNG");
             }
 
             // Crear archivo ZIP con las imágenes
             $zipFileName = 'slides_' . time() . '.zip';
             $zipFilePath = $userTempDir . $zipFileName;
-            error_log('[MARP-JPG] Creando archivo ZIP: ' . $zipFilePath);
+            error_log('[MARP-PNG] Creando archivo ZIP: ' . $zipFilePath);
 
             $zip = new \ZipArchive();
             if ($zip->open($zipFilePath, \ZipArchive::CREATE) !== TRUE) {
@@ -902,8 +902,8 @@ class MarkdownController
             }
 
             // Añadir cada imagen al ZIP
-            foreach ($jpgFiles as $jpgFile) {
-                $zip->addFile($jpgFile, basename($jpgFile));
+            foreach ($pngFiles as $pngFile) {
+                $zip->addFile($pngFile, basename($pngFile));
             }
             $zip->close();
 
@@ -911,18 +911,18 @@ class MarkdownController
             $_SESSION['jpg_download_file'] = $zipFileName;
             $_SESSION['jpg_download_full_path'] = $zipFilePath;
 
-            error_log("[JPG DEBUG] Imágenes JPG generadas y comprimidas exitosamente - Guardado en sesión");
+            error_log("[PNG DEBUG] Imágenes PNG generadas y comprimidas exitosamente - Guardado en sesión");
 
             ob_clean(); // Limpia cualquier buffer de salida
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => true,
-                'message' => 'Imágenes JPG generadas exitosamente.',
+                'message' => 'Imágenes PNG generadas exitosamente.',
                 'downloadPageUrl' => BASE_URL . '/markdown/download-jpg-page/' . urlencode($zipFileName)
             ]);
             exit;
         } catch (\Exception $e) {
-            error_log('[MARP-JPG-ERROR] ' . $e->getMessage());
+            error_log('[MARP-PNG-ERROR] ' . $e->getMessage());
             http_response_code(500);
             echo json_encode(['success' => false, 'error' => $e->getMessage()]);
             exit;
@@ -930,7 +930,7 @@ class MarkdownController
     }
 
     /**
-     * Muestra la página de descarga para archivos ZIP con imágenes JPG
+     * Muestra la página de descarga para archivos ZIP con imágenes PNG
      */
     public function showJpgDownloadPage(string $filenameFromUrl): void
     {
@@ -938,11 +938,11 @@ class MarkdownController
         $userIdForPath = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
         $expectedSessionFile = $_SESSION['jpg_download_file'] ?? null;
         $expectedSessionPath = $_SESSION['jpg_download_full_path'] ?? null;
-        $currentExpectedDiskPath = ROOT_PATH . '/public/temp_files/jpg/' . $userIdForPath . '/' . $filename;
+        $currentExpectedDiskPath = ROOT_PATH . '/public/temp_files/png/' . $userIdForPath . '/' . $filename;
 
         if ($expectedSessionFile === $filename && $expectedSessionPath === $currentExpectedDiskPath && file_exists($currentExpectedDiskPath)) {
             $base_url = BASE_URL;
-            $pageTitle = "Descargar Imágenes JPG: " . htmlspecialchars($filename, ENT_QUOTES, 'UTF-8');
+            $pageTitle = "Descargar Imágenes PNG: " . htmlspecialchars($filename, ENT_QUOTES, 'UTF-8');
             $downloadLink = BASE_URL . '/markdown/force-download-jpg/' . urlencode($filename);
             $actual_filename = $filename;
             require_once VIEWS_PATH . '/download_pdf.php';
@@ -955,14 +955,14 @@ class MarkdownController
     }
 
     /**
-     * Fuerza la descarga del archivo ZIP con imágenes JPG
+     * Fuerza la descarga del archivo ZIP con imágenes PNG
      */
     public function forceDownloadJpg(string $filenameFromUrl): void
     {
         $filename = basename(urldecode($filenameFromUrl));
         $userIdForPath = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
         $expectedSessionPath = $_SESSION['jpg_download_full_path'] ?? null;
-        $currentDiskPath = ROOT_PATH . '/public/temp_files/jpg/' . $userIdForPath . '/' . $filename;
+        $currentDiskPath = ROOT_PATH . '/public/temp_files/png/' . $userIdForPath . '/' . $filename;
 
         if ($expectedSessionPath === $currentDiskPath && file_exists($currentDiskPath)) {
             header('Content-Description: File Transfer');

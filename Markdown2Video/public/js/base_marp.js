@@ -333,8 +333,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
   
+  /**
+   * Genera imágenes PNG a partir del contenido Markdown
+   */
   async function generateJpg() {
-    console.log("[MARP-UI] Iniciando generación de JPG");
+    console.log("[MARP-UI] Iniciando generación de PNG");
     const markdownContent = marpCodeMirrorEditor.getValue();
     console.log(
       `[MARP-UI] Longitud del contenido Markdown: ${markdownContent.length} caracteres`
@@ -343,7 +346,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!markdownContent.trim()) {
       console.error("[MARP-UI-ERROR] Contenido Markdown vacío");
       alert(
-        "Por favor, escribe contenido en el editor antes de generar las imágenes JPG."
+        "Por favor, escribe contenido en el editor antes de generar las imágenes PNG."
       );
       return;
     }
@@ -351,7 +354,7 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("[MARP-UI] Mostrando indicador de carga");
     const jpgButton = document.querySelector('[data-format="jpg"]');
     const originalText = jpgButton.textContent;
-    jpgButton.textContent = "Generando JPG...";
+    jpgButton.textContent = "Generando PNG...";
     jpgButton.disabled = true;
 
     try {
@@ -377,17 +380,17 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       if (result.success) {
-        console.log("[MARP-UI] JPG generado exitosamente");
+        console.log("[MARP-UI] PNG generado exitosamente");
         window.open(result.downloadPageUrl, "_blank");
       } else {
         console.error("[MARP-UI-ERROR] Error en la generación:", result.error);
         alert(
-          "Error al generar el JPG: " + (result.error || "Error desconocido")
+          "Error al generar el PNG: " + (result.error || "Error desconocido")
         );
       }
     } catch (error) {
       console.error("[MARP-UI-ERROR] Error completo:", error);
-      alert("Error al generar el JPG. Revisa la consola para más detalles.");
+      alert("Error al generar el PNG. Revisa la consola para más detalles.");
     } finally {
       console.log("[MARP-UI] Finalizando proceso de generación");
       jpgButton.textContent = originalText;
