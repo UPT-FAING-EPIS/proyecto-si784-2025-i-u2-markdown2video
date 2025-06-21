@@ -837,4 +837,152 @@ class MarkdownController
             exit;
         }
     }
+    
+    /**
+     * Genera imágenes JPG a partir del contenido Markdown usando MarpCLI
+     * y las comprime en un archivo ZIP para su descarga
+     */
+    public function generateJpgFromMarkdown(): void
+    {
+        error_log('[MARP-JPG] Iniciando generación de JPG desde Markdown');
+        try {
+            $markdownContent = $_POST['markdown'] ?? '';
+            error_log('[MARP-JPG] Longitud del contenido Markdown recibido: ' . strlen($markdownContent));
+
+            $userId = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
+            error_log('[MARP-JPG] ID de usuario: ' . $userId);
+
+            // Crear directorios temporales para imágenes y ZIP
+            $userTempDir = ROOT_PATH . '/public/temp_files/jpg/' . $userId . '/';
+            $userImagesDir = $userTempDir . 'images_' . time() . '/';
+            error_log('[MARP-JPG] Directorio temporal: ' . $userTempDir);
+            error_log('[MARP-JPG] Directorio de imágenes: ' . $userImagesDir);
+
+            if (!is_dir($userTempDir)) {
+                error_log('[MARP-JPG] Creando directorio temporal');
+                mkdir($userTempDir, 0775, true);
+            }
+            
+            if (!is_dir($userImagesDir)) {
+                error_log('[MARP-JPG] Creando directorio de imágenes');
+                mkdir($userImagesDir, 0775, true);
+            }
+
+            // Guardar el markdown en un archivo temporal
+            $mdFilePath = $userTempDir . 'presentation_' . time() . '.md';
+            error_log('[MARP-JPG] Guardando markdown en: ' . $mdFilePath);
+            file_put_contents($mdFilePath, $markdownContent);
+
+            // Generar imágenes JPG usando MarpCLI
+            $outputPattern = $userImagesDir . 'slide_%d.jpg';
+            error_log('[MARP-JPG] Patrón de salida de imágenes: ' . $outputPattern);
+            
+            // Comando para generar imágenes JPG
+            $marpCmd = "marp --images jpg --image-scale 1.5 $mdFilePath -o $userImagesDir";
+            exec($marpCmd, $output, $returnCode);
+
+            if ($returnCode !== 0) {
+                throw new \Exception("Error al generar imágenes JPG con marp: " . implode("\n", $output));
+            }
+
+            // Verificar que se generaron imágenes
+            $jpgFiles = glob("$userImagesDir*.jpg");
+            if (empty($jpgFiles)) {
+                throw new \Exception("No se generaron imágenes JPG");
+            }
+
+            // Crear archivo ZIP con las imágenes
+            $zipFileName = 'slides_' . time() . '.zip';
+            $zipFilePath = $userTempDir . $zipFileName;
+            error_log('[MARP-JPG] Creando archivo ZIP: ' . $zipFilePath);
+
+            $zip = new \ZipArchive();
+            if ($zip->open($zipFilePath, \ZipArchive::CREATE) !== TRUE) {
+                throw new \Exception("No se pudo crear el archivo ZIP");
+            }
+
+            // Añadir cada imagen al ZIP
+            foreach ($jpgFiles as $jpgFile) {
+                $zip->addFile($jpgFile, basename($jpgFile));
+            }
+            $zip->close();
+
+            // Guardar información del ZIP en sesión para la página de descarga
+            $_SESSION['jpg_download_file'] = $zipFileName;
+            $_SESSION['jpg_download_full_path'] = $zipFilePath;
+
+            error_log("[JPG DEBUG] Imágenes JPG generadas y comprimidas exitosamente - Guardado en sesión");
+
+            ob_clean(); // Limpia cualquier buffer de salida
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'message' => 'Imágenes JPG generadas exitosamente.',
+                'downloadPageUrl' => BASE_URL . '/markdown/download-jpg-page/' . urlencode($zipFileName)
+            ]);
+            exit;
+        } catch (\Exception $e) {
+            error_log('[MARP-JPG-ERROR] ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
+    }
+
+    /**
+     * Muestra la página de descarga para archivos ZIP con imágenes JPG
+     */
+    public function showJpgDownloadPage(string $filenameFromUrl): void
+    {
+        $filename = basename(urldecode($filenameFromUrl));
+        $userIdForPath = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
+        $expectedSessionFile = $_SESSION['jpg_download_file'] ?? null;
+        $expectedSessionPath = $_SESSION['jpg_download_full_path'] ?? null;
+        $currentExpectedDiskPath = ROOT_PATH . '/public/temp_files/jpg/' . $userIdForPath . '/' . $filename;
+
+        if ($expectedSessionFile === $filename && $expectedSessionPath === $currentExpectedDiskPath && file_exists($currentExpectedDiskPath)) {
+            $base_url = BASE_URL;
+            $pageTitle = "Descargar Imágenes JPG: " . htmlspecialchars($filename, ENT_QUOTES, 'UTF-8');
+            $downloadLink = BASE_URL . '/markdown/force-download-jpg/' . urlencode($filename);
+            $actual_filename = $filename;
+            require_once VIEWS_PATH . '/download_pdf.php';
+        } else {
+            // Manejo de error básico
+            http_response_code(404);
+            echo "Archivo no encontrado o sesión inválida.";
+            exit;
+        }
+    }
+
+    /**
+     * Fuerza la descarga del archivo ZIP con imágenes JPG
+     */
+    public function forceDownloadJpg(string $filenameFromUrl): void
+    {
+        $filename = basename(urldecode($filenameFromUrl));
+        $userIdForPath = $_SESSION['user_id'] ?? 'guest_' . substr(session_id(), 0, 8);
+        $expectedSessionPath = $_SESSION['jpg_download_full_path'] ?? null;
+        $currentDiskPath = ROOT_PATH . '/public/temp_files/jpg/' . $userIdForPath . '/' . $filename;
+
+        if ($expectedSessionPath === $currentDiskPath && file_exists($currentDiskPath)) {
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . filesize($currentDiskPath));
+            flush();
+            readfile($currentDiskPath);
+            // No eliminamos el archivo para permitir descargas múltiples
+            // unlink($currentDiskPath);
+            // unset($_SESSION['jpg_download_file'], $_SESSION['jpg_download_full_path']);
+            exit;
+        } else {
+            http_response_code(404);
+            echo "Archivo ZIP no encontrado o acceso no autorizado.";
+            exit;
+        }
+    }
+
 }

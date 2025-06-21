@@ -201,6 +201,14 @@ if ($controllerClassName === 'Dales\\Markdown2video\\Controllers\\AuthController
     } elseif ($actionName === 'force-download-video' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         $methodToCall = 'forceDownloadVideo';
     }
+    // --- RUTAS PARA GENERAR JPG Y DESCARGAR ZIP ---
+    elseif ($actionName === 'generate-jpg-from-markdown' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $methodToCall = 'generateJpgFromMarkdown';
+    } elseif ($actionName === 'download-jpg-page' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $methodToCall = 'showJpgDownloadPage';
+    } elseif ($actionName === 'force-download-jpg' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $methodToCall = 'forceDownloadJpg';
+    }
     // --- ¡AÑADIR ESTA NUEVA RUTA AQUÍ! ---
     elseif ($actionName === 'create-from-template' && isset($urlSegments[2]) && is_numeric($urlSegments[2])) {
         $methodToCall = 'createFromTemplate';

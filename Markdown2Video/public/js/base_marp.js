@@ -112,6 +112,8 @@ document.addEventListener("DOMContentLoaded", function () {
         await generatePdf();
       } else if (format === "html") {
         await generateHtml();
+      } else if (format === "jpg") {
+        await generateJpg();
       } else {
         console.log(`Funcionalidad para ${format} no implementada aún.`);
       }
@@ -330,5 +332,68 @@ document.addEventListener("DOMContentLoaded", function () {
       htmlButton.disabled = false;
     }
   }
+  
+  async function generateJpg() {
+    console.log("[MARP-UI] Iniciando generación de JPG");
+    const markdownContent = marpCodeMirrorEditor.getValue();
+    console.log(
+      `[MARP-UI] Longitud del contenido Markdown: ${markdownContent.length} caracteres`
+    );
+
+    if (!markdownContent.trim()) {
+      console.error("[MARP-UI-ERROR] Contenido Markdown vacío");
+      alert(
+        "Por favor, escribe contenido en el editor antes de generar las imágenes JPG."
+      );
+      return;
+    }
+
+    console.log("[MARP-UI] Mostrando indicador de carga");
+    const jpgButton = document.querySelector('[data-format="jpg"]');
+    const originalText = jpgButton.textContent;
+    jpgButton.textContent = "Generando JPG...";
+    jpgButton.disabled = true;
+
+    try {
+      console.log("[MARP-UI] Enviando contenido al servidor");
+      const response = await fetch("/markdown/generate-jpg-from-markdown", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `markdown=${encodeURIComponent(markdownContent)}`,
+      });
+
+      const rawResponse = await response.text();
+      console.log("[MARP-UI] Respuesta cruda:", rawResponse);
+
+      let result;
+      try {
+        result = JSON.parse(rawResponse);
+      } catch (jsonError) {
+        console.error(
+          "[MARP-UI-ERROR] El servidor no devolvió JSON válido:",
+          jsonError
+        );
+        throw new Error(`Respuesta inválida del servidor: ${rawResponse}`);
+      }
+
+      if (result.success) {
+        console.log("[MARP-UI] JPG generado exitosamente");
+        window.open(result.downloadPageUrl, "_blank");
+      } else {
+        console.error("[MARP-UI-ERROR] Error en la generación:", result.error);
+        alert(
+          "Error al generar el JPG: " + (result.error || "Error desconocido")
+        );
+      }
+    } catch (error) {
+      console.error("[MARP-UI-ERROR] Error completo:", error);
+      alert("Error al generar el JPG. Revisa la consola para más detalles.");
+    } finally {
+      console.log("[MARP-UI] Finalizando proceso de generación");
+      jpgButton.textContent = originalText;
+      jpgButton.disabled = false;
+    }
+  }
+
   setTimeout(updateMarpPreview, 100);
 });

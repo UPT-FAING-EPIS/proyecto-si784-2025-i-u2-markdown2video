@@ -39,9 +39,15 @@ $actual_filename = $actual_filename ?? 'documento.pdf'; // Nombre del archivo a 
         ?>
         <div class="download-wrapper">
             <div class="download-container">
-                <h2>¡Tu PDF está listo para descargar!</h2>
+                <h2>¡Tu archivo está listo para descargar!</h2>
                 <p>Archivo: <span class="filename-display"><?php echo htmlspecialchars($actual_filename, ENT_QUOTES, 'UTF-8'); ?></span></p>
-                <a href="<?php echo htmlspecialchars($downloadLink, ENT_QUOTES, 'UTF-8'); ?>" class="download-btn">Descargar PDF Ahora</a>
+                
+                <?php if (isset($extraDownloadInfo)): ?>
+                <p class="download-info"><?php echo htmlspecialchars($extraDownloadInfo, ENT_QUOTES, 'UTF-8'); ?></p>
+                <?php endif; ?>
+                
+                <a href="<?php echo htmlspecialchars($downloadLink, ENT_QUOTES, 'UTF-8'); ?>" class="download-btn">Descargar Ahora</a>
+
                 <div class="actions-links">
                     <a href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/markdown/create">Crear otra presentación</a>
                     <span>|</span>
