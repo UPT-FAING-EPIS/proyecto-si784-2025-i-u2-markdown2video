@@ -32,7 +32,7 @@ echo "</script>\n";
   <!-- ¡NUEVO! Enlace al nuevo archivo CSS para el modal -->
   <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/modal_and_gallery.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/mermaid.css">
-    <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/preview_styles.css">
+        <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/preview_styles.css">
   <!-- En el <head> de base_markdown.php -->
 <script src="https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.min.js"></script>
 </head>
@@ -59,7 +59,7 @@ echo "</script>\n";
       <div class="preview-header"><h2>Vista Previa</h2></div>
       <div class="preview-body"><div id="ppt-preview" class="ppt-preview"><p>La vista previa se mostrará aquí...</p></div></div>
       <div class="button-container">
-        <button class="generate-btn" id="generatePdfBtnHtml">Generar PDF</button>
+        <button class="generate-btn" id="generatePdfBtnHtml">Generar PDF (desde Preview)</button>
         <button class="generate-btn" data-action="generate-html">Generar HTML</button>
       </div>
     </div>
@@ -100,6 +100,20 @@ echo "</script>\n";
     </div>
   </div>
 
+  <!-- ¡NUEVO! Modal simple para copiar la sintaxis -->
+  <div id="copySyntaxModal" class="modal-overlay" style="display: none;">
+    <div class="copy-modal-content">
+      <h4>Copiar Sintaxis de Imagen</h4>
+      <p>Usa este código en tu editor para insertar la imagen:</p>
+      <input type="text" id="syntaxToCopy" readonly>
+      <div class="copy-modal-actions">
+        <button id="copySyntaxBtn" class="submit-btn">Copiar</button>
+        <button id="closeCopyModalBtn" class="cancel-btn">Cerrar</button>
+      </div>
+      <small id="copyStatusMessage" class="copy-status"></small>
+    </div>
+  </div>
+
   <!-- ¡NUEVO! Modal para expandir los diagramas de Mermaid -->
   <div id="mermaidModal" class="mermaid-modal-overlay" style="display: none;">
     <div class="mermaid-modal-content">
@@ -110,14 +124,49 @@ echo "</script>\n";
     </div>
   </div>
 
+  <!-- ¡NUEVO! HTML completo del Modal para gestionar imágenes (colocado antes de los scripts) -->
+  <div id="imageModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <button class="modal-close" id="closeImageModalBtn">×</button>
+      <h2>Gestor de Imágenes</h2>
+      
+      <div class="modal-body">
+        <div class="upload-section">
+          <h3>Subir Nueva Imagen</h3>
+          <form id="uploadImageForm">
+            <div class="form-group">
+              <label for="image_name">Nombre de Referencia:</label>
+              <input type="text" id="image_name" name="image_name" required pattern="[a-zA-Z0-9_-]+" placeholder="mi_foto_1">
+              <small>Solo letras, números, guiones y guión bajo.</small>
+            </div>
+            <div class="form-group">
+              <label for="image_file">Seleccionar archivo (max 5MB):</label>
+              <input type="file" id="image_file" name="image_file" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml" required>
+            </div>
+            <button type="submit" class="submit-btn">Subir Imagen</button>
+          </form>
+          <div id="uploadStatus" class="status-message"></div>
+        </div>
+
+        <div class="gallery-section">
+          <h3>Mis Imágenes</h3>
+          <div id="imageGallery" class="image-gallery-grid">
+            <!-- Las imágenes se cargarán aquí con JavaScript -->
+            <p>Cargando imágenes...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/mode/markdown/markdown.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/addon/edit/continuelist.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/addon/display/placeholder.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/resizable_images.js"></script>
+  
   <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/base_markdown.js"></script>
   <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/mermaid_handler.js"></script>
+    <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/resizable_images.js"></script>
 </body>
 </html>
