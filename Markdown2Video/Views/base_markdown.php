@@ -60,7 +60,7 @@ echo "</script>\n";
       <div class="preview-body"><div id="ppt-preview" class="ppt-preview"><p>La vista previa se mostrará aquí...</p></div></div>
       <div class="button-container">
         <button class="generate-btn" id="generatePdfBtnHtml">Generar PDF</button>
-        <button class="generate-btn" data-action="generate-html">Generar HTML</button>
+        <button class="generate-btn" id="generateHtmlBtn">Generar HTML</button>
       </div>
     </div>
   </div>

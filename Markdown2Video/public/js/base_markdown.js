@@ -282,4 +282,84 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // =========================================================================
+    // === ¡NUEVO! LÓGICA DE GENERACIÓN DE HTML ================================
+    // =========================================================================
+    const generateHtmlBtn = document.getElementById('generateHtmlBtn');
+
+    if (generateHtmlBtn && previewDiv) {
+        generateHtmlBtn.addEventListener('click', async function() {
+            const originalButtonText = this.textContent;
+            this.textContent = 'Generando...';
+            this.disabled = true;
+
+            try {
+                const previewContent = previewDiv.innerHTML;
+                
+                if (!previewContent.trim() || previewContent.includes("La vista previa se mostrará aquí...")) {
+                    alert("La vista previa está vacía. Escribe algo primero.");
+                    return; 
+                }
+                let cssStyles = '';
+                try {
+                    const cssResponse = await fetch(`${baseUrlJs}/public/css/preview_styles.css`);
+                    if (cssResponse.ok) {
+                        cssStyles = await cssResponse.text();
+                    } else {
+                        console.warn('No se pudo cargar preview_styles.css para la exportación HTML.');
+                    }
+                } catch (e) {
+                    console.error('Error cargando CSS para exportación HTML:', e);
+                }
+
+                const fullHtml = `
+                    <!DOCTYPE html>
+                    <html lang="es">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Documento Generado</title>
+                        <style>
+                            /* Estilos básicos para el documento exportado */
+                            body {
+                                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                                max-width: 900px;
+                                margin: 40px auto;
+                                padding: 0 20px;
+                            }
+                            /* Incrustamos los estilos de la vista previa */
+                            ${cssStyles}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="ppt-preview">
+                            ${previewContent}
+                        </div>
+                    </body>
+                    </html>
+                `;
+
+                const blob = new Blob([fullHtml], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'presentacion.html'; 
+                document.body.appendChild(a);
+                a.click(); 
+                
+                // Limpieza
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+            } catch (error) {
+                console.error("Error al generar el archivo HTML:", error);
+                alert("Ocurrió un error al intentar generar el archivo HTML.");
+            } finally {
+                this.textContent = originalButtonText;
+                this.disabled = false;
+            }
+        });
+    }
 });
