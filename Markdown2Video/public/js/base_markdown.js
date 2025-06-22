@@ -55,20 +55,26 @@ document.addEventListener('DOMContentLoaded', function () {
     setTimeout(refreshEditor, 100);
 
     if (typeof marked !== 'undefined') {
-        const renderer = new marked.Renderer();
-        const originalImageRenderer = renderer.image; 
-        renderer.image = (href, title, text) => {
-            const url = typeof href === 'string' ? href : (href.href || '');
-            if (url.startsWith('img:')) {
-                const imageName = url.substring(4);
-                const imageUrl = `${baseUrlJs}/image/serve/${encodeURIComponent(imageName)}`;
-                return `<img src="${imageUrl}" alt="${text}" ${title ? `title="${title}"` : ''}>`;
+        const renderer = {
+            // Sobrescribimos solo la función de imagen
+            image(href, title, text) {
+                // Verificamos si la URL es de nuestras imágenes locales
+                if (href.startsWith('img:')) {
+                    const imageName = href.substring(4);
+                    const imageUrl = `${baseUrlJs}/image/serve/${encodeURIComponent(imageName)}`;
+                    // Devolvemos la etiqueta <img> con la ruta a nuestro controlador.
+                    // Usamos comillas dobles y simples correctamente para evitar errores de HTML.
+                    return `<img src="${imageUrl}" alt="${text}" ${title ? `title="${title}"` : ''}>`;
+                }
+
+                // Si no es una imagen local, no hacemos nada especial.
+                // Devolvemos 'false' para que marked.js use su renderizador por defecto para este token.
+                // Esto evita el error 'parseInline' y permite que las imágenes de internet funcionen.
+                return false; 
             }
-            if (typeof url === 'string' && (url.startsWith('http') || url.startsWith('//'))) {
-                return `<img src="${url}" alt="${text}" ${title ? `title="${title}"` : ''}>`;
-            }
-            return originalImageRenderer.call(renderer, href, title, text);
         };
+        
+        // Usamos el nuevo renderer personalizado
         marked.use({ renderer }); 
     }
 
