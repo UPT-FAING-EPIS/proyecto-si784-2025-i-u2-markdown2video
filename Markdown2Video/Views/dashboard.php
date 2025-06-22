@@ -92,6 +92,14 @@ $templates = $templates ?? [];
             </a>
         </div>
 
+        <!-- ¡NUEVO! Tarjeta para Subir/Arrastrar Archivo -->
+        <div id="dropZoneDashboard" class="start-section drop-zone-dashboard">
+            <h2>Abrir Archivo</h2>
+            <p>Arrastra un archivo <code>.md</code> aquí o haz clic para seleccionarlo.</p>
+            <i class="fa-solid fa-file-arrow-up"></i>
+            <input type="file" id="fileInputDashboard" accept=".md, .markdown, text/markdown" style="display: none;">
+        </div>
+
         <!-- Columna Derecha: Plantillas -->
         <div class="templates-section">
             <h3>...o empieza desde una Plantilla Markdown</h3>
@@ -126,6 +134,8 @@ $templates = $templates ?? [];
             </div>
         </div> -->
     </div>
+
+    <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/dashboard_handler.js"></script>
 
 </body>
 </html>

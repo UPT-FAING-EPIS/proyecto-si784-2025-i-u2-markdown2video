@@ -1,17 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const uploadButton = document.getElementById('uploadMdButton');
-    const editorInstance = document.querySelector('.CodeMirror').CodeMirror; // Obtenemos la instancia de CodeMirror
+    const dropZone = document.getElementById('dropZoneDashboard');
+    const fileInput = document.getElementById('fileInputDashboard');
+    const baseUrl = typeof window.BASE_APP_URL !== 'undefined' ? window.BASE_APP_URL : '';
 
-    if (!dropZone || !fileInput || !uploadButton || !editorInstance) {
-        console.warn("Faltan elementos para la funcionalidad de 'drag and drop'.");
+    if (!dropZone || !fileInput) {
         return;
     }
 
-    uploadButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        fileInput.click(); 
+    dropZone.addEventListener('click', () => {
+        fileInput.click();
     });
 
     fileInput.addEventListener('change', (e) => {
@@ -31,21 +28,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => {
-            dropZone.classList.add('drag-over');
-        }, false);
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-over'), false);
     });
 
     ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => {
-            dropZone.classList.remove('drag-over');
-        }, false);
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-over'), false);
     });
 
     dropZone.addEventListener('drop', (e) => {
         const dt = e.dataTransfer;
         const files = dt.files;
-
         if (files.length > 0) {
             handleFile(files[0]);
         }
@@ -61,7 +53,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         reader.onload = function(e) {
             const content = e.target.result;
-            editorInstance.setValue(content);
+            sessionStorage.setItem('markdown_content_to_load', content);
+            
+            window.location.href = baseUrl + '/markdown/create';
         };
 
         reader.onerror = function() {

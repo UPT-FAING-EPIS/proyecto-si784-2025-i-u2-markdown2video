@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const imageGallery = document.getElementById('imageGallery');
     const uploadStatusDiv = document.getElementById('uploadStatus');
 
-    // --- ¡NUEVO! --- Selectores para el modal de copiado
+    // Selectores para el modal de copiado
     const copySyntaxModal = document.getElementById('copySyntaxModal');
     const syntaxToCopyInput = document.getElementById('syntaxToCopy');
     const copySyntaxBtn = document.getElementById('copySyntaxBtn');
@@ -39,6 +39,17 @@ document.addEventListener('DOMContentLoaded', function () {
             extraKeys: { "Enter": "newlineAndIndentContinueMarkdownList" }
         });
     } catch (e) { console.error("JS ERROR: CodeMirror init falló:", e); return; }
+
+    // --- ¡AQUÍ ESTÁ LA NUEVA LÓGICA AÑADIDA! ---
+    // Carga el contenido desde sessionStorage si existe (después de arrastrar un archivo en el dashboard)
+    const contentToLoad = sessionStorage.getItem('markdown_content_to_load');
+    if (contentToLoad && editorInstance) {
+        editorInstance.setValue(contentToLoad);
+        // Limpiamos el sessionStorage para que no se vuelva a cargar si se recarga la página
+        sessionStorage.removeItem('markdown_content_to_load');
+    }
+    // --- FIN DE LA NUEVA LÓGICA ---
+
 
     function refreshEditor() { if (editorInstance) { editorInstance.setSize('100%', '100%'); editorInstance.refresh(); } }
     setTimeout(refreshEditor, 100);
@@ -65,19 +76,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!previewDiv) return;
         if (typeof marked !== 'undefined' && editorInstance) {
             try {
-                // 1. Parseamos el Markdown
                 previewDiv.innerHTML = marked.parse(editorInstance.getValue(), { breaks: true });
-                
-                // 2. Renderizamos los diagramas de Mermaid (responsabilidad delegada)
                 if (typeof renderMermaidDiagrams === 'function') {
                     renderMermaidDiagrams(previewDiv);
                 }
-
-                // 3. Hacemos las imágenes interactivas (responsabilidad delegada)
                 if (typeof makeImagesInteractive === 'function') {
                     makeImagesInteractive(previewDiv);
                 }
-
             } catch (e) {
                 console.error("JS Error en la actualización de la vista previa:", e);
                 previewDiv.innerHTML = "<p style='color:red;'>Error al generar la vista previa.</p>";
@@ -88,17 +93,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (editorInstance) {
-        // 1. Escuchar los cambios normales (cuando se escribe)
         editorInstance.on("change", updateMarkdownPreview);
-
-        // 2. ¡NUEVO! Escuchar específicamente el evento de pegado
         editorInstance.on("paste", function() {
-            // Usamos un pequeño retraso (setTimeout) para darle tiempo al DOM 
-            // a procesar el texto pegado antes de intentar actualizar la vista previa.
             setTimeout(updateMarkdownPreview, 50); 
         });
-
-        // 3. Cargar la vista previa inicial (cuando se carga desde una plantilla)
         setTimeout(updateMarkdownPreview, 150);
     }
     
@@ -218,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- ¡NUEVO! --- Listeners para el modal de copiado
+    // Listeners para el modal de copiado
     if (copySyntaxBtn && syntaxToCopyInput) {
         copySyntaxBtn.addEventListener('click', () => {
             syntaxToCopyInput.select();
