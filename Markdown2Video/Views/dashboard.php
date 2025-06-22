@@ -18,37 +18,100 @@ $templates = $templates ?? [];
     
     <!-- Estilos para las plantillas (puedes moverlos a dashboard.css si prefieres) -->
     <style>
+        /* Contenedor principal del dashboard */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Grid para las acciones de inicio */
+        .quick-start-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        /* Estilo común para las tarjetas de acción */
         .start-section {
             background-color: #fff;
             padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+        .start-section h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        .btn-historical { /* Tu botón original */
+            background-color: #6b56f0;
+            color: white;
+            padding: 12px 25px;
+            border: none;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
         }
-        .start-options {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-top: 15px;
+        .btn-historical:hover {
+            background-color: #5e46e7;
+            transform: translateY(-2px);
         }
+
+        /* Estilos para la tarjeta de arrastrar y soltar */
+        .drop-zone-dashboard {
+            border: 2px dashed #d1d5db;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .drop-zone-dashboard:hover,
+        .drop-zone-dashboard.drag-over {
+            border-color: #6b56f0;
+            background-color: #f7f5ff;
+        }
+        .drop-zone-dashboard p {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin: 0 0 15px 0;
+        }
+        .drop-zone-dashboard i {
+            font-size: 2.5em;
+            color: #a5b4fc;
+            margin-top: 10px;
+        }
+
+        /* Sección de plantillas */
         .templates-section {
             margin-top: 40px;
         }
-        .templates-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        .templates-section h3 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .templates-container {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 15px;
+        }
+        .templates-row {
+            display: flex;
+            flex-wrap: nowrap;
             gap: 25px;
-            margin-top: 20px;
         }
         .template-card {
+            flex: 0 0 280px;
             border: 1px solid #e9ecef;
             border-radius: 12px;
             overflow: hidden;
             text-decoration: none;
             color: inherit;
-            display: flex;
-            flex-direction: column;
             background-color: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
             transition: box-shadow 0.3s ease, transform 0.3s ease;
         }
         .template-card:hover {
@@ -57,52 +120,43 @@ $templates = $templates ?? [];
         }
         .template-card img {
             width: 100%;
-            height: 160px;
+            height: 150px;
             object-fit: cover;
             border-bottom: 1px solid #e9ecef;
         }
-        .template-card-content {
-            padding: 20px;
-            flex-grow: 1;
-        }
-        .template-card h4 {
-            margin: 0 0 8px 0;
-            font-size: 1.1em;
-        }
-        .template-card p {
-            font-size: 0.9em;
-            color: #6c757d;
-            margin: 0;
-            line-height: 1.5;
-        }
+        .template-card-content { padding: 15px; }
+        .template-card h4 { margin: 0 0 8px 0; font-size: 1.05em; }
+        .template-card p { font-size: 0.9em; color: #6c757d; line-height: 1.5; }
     </style>
 </head>
 <body>
 
     <?php if (defined('VIEWS_PATH') && file_exists(VIEWS_PATH . 'header.php')) { include VIEWS_PATH . 'header.php'; } ?>
 
-    <!-- Contenedor principal para las acciones -->
-    <div class="main-actions-container">
+    <div class="dashboard-container">
+        
+        <!-- Contenedor para las acciones de inicio rápido -->
+        <div class="quick-start-grid">
+            <!-- Tarjeta para Crear desde Cero -->
+            <div class="start-section">
+                <h2>Empieza</h2>
+                <a href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/markdown/create">
+                    <button class="btn-historical">Creando desde Cero +</button>
+                </a>
+            </div>
 
-        <!-- Columna Izquierda: Crear desde Cero -->
-        <div class="start-section">
-            <h2>Empieza</h2>
-            <a href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/markdown/create">
-                <button class="btn-historical">Creando desde Cero +</button>
-            </a>
+            <!-- Tarjeta para Subir/Arrastrar Archivo -->
+            <div id="dropZoneDashboard" class="start-section drop-zone-dashboard">
+                <h2>Abrir Archivo</h2>
+                <p>Arrastra un archivo <code>.md</code> o haz clic para seleccionarlo.</p>
+                <i class="fa-solid fa-file-arrow-up"></i>
+                <input type="file" id="fileInputDashboard" accept=".md,.markdown,text/markdown" style="display: none;">
+            </div>
         </div>
 
-        <!-- ¡NUEVO! Tarjeta para Subir/Arrastrar Archivo -->
-        <div id="dropZoneDashboard" class="start-section drop-zone-dashboard">
-            <h2>Abrir Archivo</h2>
-            <p>Arrastra un archivo <code>.md</code> aquí o haz clic para seleccionarlo.</p>
-            <i class="fa-solid fa-file-arrow-up"></i>
-            <input type="file" id="fileInputDashboard" accept=".md, .markdown, text/markdown" style="display: none;">
-        </div>
-
-        <!-- Columna Derecha: Plantillas -->
+        <!-- SECCIÓN DE PLANTILLAS -->
         <div class="templates-section">
-            <h3>...o empieza desde una Plantilla Markdown</h3>
+            <h3>...o empieza desde una Plantilla Profesional</h3>
             <div class="templates-container">
                 <div class="templates-row">
                     <?php if (!empty($templates)): ?>
@@ -121,20 +175,16 @@ $templates = $templates ?? [];
                 </div>
             </div>
         </div>
-
-    </div> <!-- Fin de main-actions-container -->
         
         <!-- SECCIÓN DE HISTORIAL (opcional) -->
-        <!-- <div class="dashboard-content">
-            <div class="historical">
-                <h3>Historial</h3>
-                <div class="historical-content">
-                     <p>El historial de tus presentaciones aparecerá aquí...</p>
-                </div>
-            </div>
-        </div> -->
+        <!-- ... tu sección de historial ... -->
+
     </div>
 
+    <!-- Cargar Font Awesome para los iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    
+    <!-- Cargar los scripts necesarios -->
     <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/dashboard_handler.js"></script>
 
 </body>
