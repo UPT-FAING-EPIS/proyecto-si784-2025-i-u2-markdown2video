@@ -185,6 +185,10 @@ $templates = $templates ?? [];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     
     <!-- Cargar los scripts necesarios -->
+    <script>
+        // Pasamos la variable BASE_URL de PHP a JavaScript
+        window.BASE_APP_URL = <?php echo json_encode($base_url); ?>;
+    </script>
     <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/dashboard_handler.js"></script>
 
 </body>
