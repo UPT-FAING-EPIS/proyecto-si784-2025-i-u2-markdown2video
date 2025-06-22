@@ -15,7 +15,7 @@ $site_name_or_logo_alt = $pageTitle ?? 'Markdown2Video'; // $pageTitle vendría 
     <nav class="navbar">
         <div class="navbar-left">
             <a href="<?php echo htmlspecialchars($base_url_header, ENT_QUOTES, 'UTF-8'); ?>/<?php echo $is_logged_in_header ? 'dashboard' : 'auth/login'; ?>">
-                <img src="<?php echo htmlspecialchars($base_url_header, ENT_QUOTES, 'UTF-8'); ?>/Assets/imagen/logo.png" alt="Logo <?php echo htmlspecialchars($site_name_or_logo_alt, ENT_QUOTES, 'UTF-8'); ?>" class="logo-img">
+                <img src="<?php echo htmlspecialchars($base_url_header, ENT_QUOTES, 'UTF-8'); ?>/Assets/imagen/logo_corto.png" alt="Logo <?php echo htmlspecialchars($site_name_or_logo_alt, ENT_QUOTES, 'UTF-8'); ?>" class="logo-img">
             </a>
         </div>
         <div class="navbar-right">

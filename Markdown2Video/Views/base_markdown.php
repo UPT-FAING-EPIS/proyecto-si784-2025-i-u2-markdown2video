@@ -59,7 +59,7 @@ echo "</script>\n";
       <div class="preview-header"><h2>Vista Previa</h2></div>
       <div class="preview-body"><div id="ppt-preview" class="ppt-preview"><p>La vista previa se mostrará aquí...</p></div></div>
       <div class="button-container">
-        <button class="generate-btn" id="generatePdfBtnHtml">Generar PDF (desde Preview)</button>
+        <button class="generate-btn" id="generatePdfBtnHtml">Generar PDF</button>
         <button class="generate-btn" data-action="generate-html">Generar HTML</button>
       </div>
     </div>
@@ -159,6 +159,18 @@ echo "</script>\n";
     </div>
   </div>
 
+  <!-- ¡NUEVA SECCIÓN DE CARGA DE ARCHIVOS! -->
+    <div id="dropZone" class="drop-zone">
+        <div class="drop-zone-text">
+            <i class="fa-solid fa-file-arrow-up"></i>
+            <p>Arrastra y suelta un archivo .md aquí</p>
+            <span>o</span>
+            <button id="uploadMdButton" class="upload-md-button">Selecciona un archivo</button>
+            <input type="file" id="fileInput" accept=".md, .markdown, text/markdown" style="display: none;">
+        </div>
+    </div>
+    <!-- FIN DE LA NUEVA SECCIÓN -->
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/mode/markdown/markdown.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/addon/edit/continuelist.js"></script>
@@ -168,5 +180,6 @@ echo "</script>\n";
   <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/base_markdown.js"></script>
   <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/mermaid_handler.js"></script>
     <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/resizable_images.js"></script>
+    <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/file_drop_handler.js"></script>
 </body>
 </html>

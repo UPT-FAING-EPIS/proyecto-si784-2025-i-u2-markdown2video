@@ -153,3 +153,58 @@ textarea.editor {
 .generate-btn:hover {
     background-color: #5a48d1;
 }
+
+/* --- ESTILOS PARA LA ZONA DE DRAG & DROP --- */
+
+.drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 25px;
+    text-align: center;
+    color: #888;
+    margin-bottom: 15px;
+    transition: border-color 0.3s, background-color 0.3s;
+    cursor: pointer;
+}
+
+.drop-zone-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.drop-zone-text i {
+    font-size: 2.5em;
+    color: #aab;
+}
+
+.drop-zone-text p {
+    margin: 0;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.drop-zone-text span {
+    font-style: italic;
+}
+
+.upload-md-button {
+    background-color: #6b56f0;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.upload-md-button:hover {
+    background-color: #5e46e7;
+}
+
+/* Estilo que se aplica cuando un archivo se arrastra sobre la zona */
+.drop-zone.drag-over {
+    border-color: #6b56f0;
+    background-color: #f0f0f8;
+}
