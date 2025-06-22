@@ -56,26 +56,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (typeof marked !== 'undefined') {
         const renderer = {
-            // Sobrescribimos solo la función de imagen
+            // Sobrescribimos la función de imagen
             image(href, title, text) {
-                // Verificamos si la URL es de nuestras imágenes locales
-                if (href.startsWith('img:')) {
-                    const imageName = href.substring(4);
+                // --- CORRECCIÓN CLAVE ---
+                // Primero, nos aseguramos de que 'href' sea una cadena de texto (string).
+                // Si marked.js nos pasa un objeto, extraemos la URL de la propiedad .href
+                const url = typeof href === 'string' ? href : (href.href || '');
+
+                // Ahora que 'url' es un string seguro, podemos usar .startsWith()
+                if (url.startsWith('img:')) {
+                    const imageName = url.substring(4);
                     const imageUrl = `${baseUrlJs}/image/serve/${encodeURIComponent(imageName)}`;
-                    // Devolvemos la etiqueta <img> con la ruta a nuestro controlador.
-                    // Usamos comillas dobles y simples correctamente para evitar errores de HTML.
+                    // Devolvemos la etiqueta <img> completa para nuestras imágenes locales.
                     return `<img src="${imageUrl}" alt="${text}" ${title ? `title="${title}"` : ''}>`;
                 }
 
-                // Si no es una imagen local, no hacemos nada especial.
-                // Devolvemos 'false' para que marked.js use su renderizador por defecto para este token.
-                // Esto evita el error 'parseInline' y permite que las imágenes de internet funcionen.
-                return false; 
+                // Para cualquier otro caso (imágenes de internet, etc.),
+                // devolvemos 'false' para que marked.js use su renderizador por defecto.
+                return false;
             }
         };
         
-        // Usamos el nuevo renderer personalizado
-        marked.use({ renderer }); 
+        marked.use({ renderer });
     }
 
     function updateMarkdownPreview() {
