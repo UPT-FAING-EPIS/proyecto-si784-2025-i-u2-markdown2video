@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Mostrar mensaje de error
                 const loadingRow = document.getElementById('loadingRow');
                 if (loadingRow) {
-                    loadingRow.innerHTML = `<td colspan="5" style="text-align: center; color: #dc3545;">Error al cargar los archivos: ${error.message}</td>`;
+                    loadingRow.innerHTML = `<td colspan="7" style="text-align: center; color: #dc3545;">Error al cargar los archivos: ${error.message}</td>`;
                 }
             });
     }
