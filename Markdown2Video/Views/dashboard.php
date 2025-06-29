@@ -128,6 +128,88 @@ $marpTemplates = $marpTemplates ?? [];
         .template-card-content { padding: 15px; }
         .template-card h4 { margin: 0 0 8px 0; font-size: 1.05em; }
         .template-card p { font-size: 0.9em; color: #6c757d; line-height: 1.5; }
+
+        /* Estilos para la tabla de archivos guardados */
+        .saved-files-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.95em;
+        }
+        .saved-files-table thead tr {
+            border-bottom: 2px solid #e9ecef;
+            color: #495057;
+        }
+        .saved-files-table th,
+        .saved-files-table td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+        .saved-files-table tbody tr {
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s;
+        }
+        .saved-files-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        .saved-files-table td:nth-child(4),
+        .saved-files-table th:nth-child(4) {
+            text-align: center;
+        }
+        .saved-files-table td:last-child,
+        .saved-files-table th:last-child {
+            text-align: center;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+            color: white;
+        }
+        .badge-marp {
+            background-color: #6b56f0;
+        }
+        .badge-markdown {
+            background-color: #17a2b8;
+        }
+        .action-icon {
+            color: #6b56f0;
+            margin-right: 10px;
+            transition: transform 0.2s;
+        }
+        .action-icon:hover {
+            transform: scale(1.2);
+        }
+        .action-icon-delete {
+            color: #dc3545;
+        }
+        .action-icon-delete:hover {
+            transform: scale(1.2);
+        }
+        
+        /* Responsive layout */
+        @media (max-width: 992px) {
+            .dashboard-main-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .saved-files-container {
+                margin-top: 30px;
+            }
+        }
+        @media (max-width: 768px) {
+            .saved-files-table th:nth-child(3),
+            .saved-files-table td:nth-child(3) {
+                display: none;
+            }
+        }
+        @media (max-width: 576px) {
+            .saved-files-table th:nth-child(4),
+            .saved-files-table td:nth-child(4) {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -136,22 +218,79 @@ $marpTemplates = $marpTemplates ?? [];
 
     <div class="dashboard-container">
         
-        <!-- Contenedor para las acciones de inicio rápido -->
-        <div class="quick-start-grid">
-            <!-- Tarjeta para Crear desde Cero -->
-            <div class="start-section">
-                <h2>Empieza</h2>
-                <a href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/markdown/create">
-                    <button class="btn-historical">Creando desde Cero +</button>
-                </a>
-            </div>
+        <!-- Contenedor principal con grid para acciones y archivos guardados -->
+        <div class="dashboard-main-grid" style="display: grid; grid-template-columns: 2fr 3fr; gap: 30px;">
+            <!-- Columna izquierda: acciones de inicio rápido -->
+            <div>
+                <div class="quick-start-grid">
+                    <!-- Tarjeta para Crear desde Cero -->
+                    <div class="start-section">
+                        <h2>Empieza</h2>
+                        <a href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/markdown/create">
+                            <button class="btn-historical">Creando desde Cero +</button>
+                        </a>
+                    </div>
 
-            <!-- Tarjeta para Subir/Arrastrar Archivo -->
-            <div id="dropZoneDashboard" class="start-section drop-zone-dashboard">
-                <h2>Abrir Archivo</h2>
-                <p>Arrastra un archivo <code>.md</code> o haz clic para seleccionarlo.</p>
-                <i class="fa-solid fa-file-arrow-up"></i>
-                <input type="file" id="fileInputDashboard" accept=".md,.markdown,text/markdown" style="display: none;">
+                    <!-- Tarjeta para Subir/Arrastrar Archivo -->
+                    <div id="dropZoneDashboard" class="start-section drop-zone-dashboard">
+                        <h2>Abrir Archivo</h2>
+                        <p>Arrastra un archivo <code>.md</code> o haz clic para seleccionarlo.</p>
+                        <i class="fa-solid fa-file-arrow-up"></i>
+                        <input type="file" id="fileInputDashboard" accept=".md,.markdown,text/markdown" style="display: none;">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Columna derecha: tabla de archivos guardados -->
+            <div class="start-section saved-files-container" style="height: fit-content;">
+                <h2>Mis Archivos Guardados</h2>
+                <div style="overflow-x: auto;">
+                    <table class="saved-files-table">
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>Tipo</th>
+                                <th>Modificado</th>
+                                <th>Público</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Aquí se mostrarán los archivos guardados del usuario -->
+                            <!-- Esta es solo una representación visual, los datos reales vendrán de la base de datos -->
+                            <tr>
+                                <td>Presentación Proyecto</td>
+                                <td><span class="badge badge-marp">Marp</span></td>
+                                <td>2023-06-15</td>
+                                <td><i class="fa-solid fa-check" style="color: #28a745;"></i></td>
+                                <td>
+                                    <a href="#" class="action-icon" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    <a href="#" class="action-icon-delete" title="Eliminar"><i class="fa-solid fa-trash"></i></a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Documentación API</td>
+                                <td><span class="badge badge-markdown">Markdown</span></td>
+                                <td>2023-06-10</td>
+                                <td><i class="fa-solid fa-xmark" style="color: #dc3545;"></i></td>
+                                <td>
+                                    <a href="#" class="action-icon" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    <a href="#" class="action-icon-delete" title="Eliminar"><i class="fa-solid fa-trash"></i></a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Notas Reunión</td>
+                                <td><span class="badge badge-markdown">Markdown</span></td>
+                                <td>2023-06-05</td>
+                                <td><i class="fa-solid fa-check" style="color: #28a745;"></i></td>
+                                <td>
+                                    <a href="#" class="action-icon" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    <a href="#" class="action-icon-delete" title="Eliminar"><i class="fa-solid fa-trash"></i></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
