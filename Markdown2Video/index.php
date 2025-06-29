@@ -240,6 +240,12 @@ if ($controllerNamePart === 'Api') {
         $methodToCall = 'deleteSavedFile';
         $params = [(int)$urlSegments[3]]; // Convertir el ID a entero
     }
+    // Ruta para obtener información de un archivo
+    elseif ($actionName === 'saved-files' && isset($urlSegments[2]) && $urlSegments[2] === 'info' && isset($urlSegments[3]) && is_numeric($urlSegments[3])) {
+        $controllerClassName = 'Dales\\Markdown2video\\Controllers\\ApiController';
+        $methodToCall = 'getFileInfo';
+        $params = [(int)$urlSegments[3]]; // Convertir el ID a entero
+    }
 }
 
 // VERIFICAR Y EJECUTAR EL CONTROLADOR

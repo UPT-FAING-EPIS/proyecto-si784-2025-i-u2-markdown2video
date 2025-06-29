@@ -32,6 +32,13 @@ echo "</script>\n";
             <div class="editor-header">
                 <h2>Editor (Marp)</h2>
                 <div class="editor-controls">
+                    <div class="public-toggle-container">
+                        <label for="public-toggle" class="toggle-label">Público</label>
+                        <label class="switch">
+                            <input type="checkbox" id="public-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
                     <button id="save-marp-btn" class="save-btn">Guardar</button>
                     <select id="mode-select-marp-page" class="mode-selector"> <!-- ID DIFERENTE -->
                         <option value="marp" selected>Marp</option>

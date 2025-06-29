@@ -4,10 +4,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const previewDivMarp = document.getElementById("ppt-preview");
   const modeSelectMarp = document.getElementById("mode-select-marp-page");
   const saveMarpBtn = document.getElementById("save-marp-btn");
+  const publicToggle = document.getElementById("public-toggle");
 
   let marpDebounceTimer;
   // Variable para almacenar el ID del archivo si estamos editando uno existente
   let currentFileId = null;
+  // Variable para almacenar si el archivo es público o privado
+  let isPublic = false;
   
   // Extraer el ID del archivo de la URL si existe
   const urlParams = new URLSearchParams(window.location.search);
@@ -17,6 +20,28 @@ document.addEventListener("DOMContentLoaded", function () {
   // Verificar si el último segmento de la URL es un número (ID del archivo)
   if (!isNaN(lastSegment) && lastSegment.trim() !== '') {
     currentFileId = parseInt(lastSegment);
+    
+    // Si estamos editando un archivo existente, cargar su estado público/privado
+    if (currentFileId && publicToggle) {
+      // Hacer una petición para obtener la información del archivo
+      fetch(`/api/saved-files/info/${currentFileId}`, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success && data.data) {
+            // Actualizar el estado del toggle
+            isPublic = data.data.is_public;
+            publicToggle.checked = isPublic;
+          }
+        })
+        .catch(error => {
+          console.error('Error al cargar información del archivo:', error);
+        });
+    }
   }
 
   if (!editorTextareaMarp) {
@@ -121,6 +146,107 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // Función para crear un modal personalizado para el título
+  function createTitleModal(isNewFile = true, currentTitle = '') {
+    return new Promise((resolve, reject) => {
+      // Crear elementos del modal
+      const modalOverlay = document.createElement('div');
+      modalOverlay.className = 'modal-overlay';
+      
+      const modalContent = document.createElement('div');
+      modalContent.className = 'modal-content';
+      
+      // Header del modal
+      const modalHeader = document.createElement('div');
+      modalHeader.className = 'modal-header';
+      const modalTitle = document.createElement('h3');
+      modalTitle.textContent = isNewFile ? 'Guardar nuevo archivo' : 'Actualizar archivo';
+      modalHeader.appendChild(modalTitle);
+      
+      // Body del modal
+      const modalBody = document.createElement('div');
+      modalBody.className = 'modal-body';
+      
+      const formGroup = document.createElement('div');
+      formGroup.className = 'form-group';
+      
+      const titleLabel = document.createElement('label');
+      titleLabel.setAttribute('for', 'file-title-input');
+      titleLabel.textContent = 'Título del archivo:';
+      
+      const titleInput = document.createElement('input');
+      titleInput.type = 'text';
+      titleInput.id = 'file-title-input';
+      titleInput.className = 'form-control';
+      titleInput.value = currentTitle;
+      titleInput.placeholder = 'Ingresa un título para tu archivo';
+      titleInput.required = true;
+      
+      formGroup.appendChild(titleLabel);
+      formGroup.appendChild(titleInput);
+      modalBody.appendChild(formGroup);
+      
+      // Footer del modal
+      const modalFooter = document.createElement('div');
+      modalFooter.className = 'modal-footer';
+      
+      const cancelButton = document.createElement('button');
+      cancelButton.className = 'btn btn-secondary';
+      cancelButton.textContent = 'Cancelar';
+      cancelButton.onclick = () => {
+        document.body.removeChild(modalOverlay);
+        reject('Operación cancelada');
+      };
+      
+      const saveButton = document.createElement('button');
+      saveButton.className = 'btn btn-primary';
+      saveButton.textContent = 'Guardar';
+      saveButton.onclick = () => {
+        const title = titleInput.value.trim();
+        if (!title) {
+          titleInput.style.borderColor = 'red';
+          return;
+        }
+        document.body.removeChild(modalOverlay);
+        resolve(title);
+      };
+      
+      // Si es un archivo existente, agregar opción para mantener el título actual
+      if (!isNewFile) {
+        const keepTitleButton = document.createElement('button');
+        keepTitleButton.className = 'btn btn-secondary';
+        keepTitleButton.textContent = 'Mantener título actual';
+        keepTitleButton.onclick = () => {
+          document.body.removeChild(modalOverlay);
+          resolve('KEEP_EXISTING_TITLE');
+        };
+        modalFooter.appendChild(keepTitleButton);
+      }
+      
+      modalFooter.appendChild(cancelButton);
+      modalFooter.appendChild(saveButton);
+      
+      // Ensamblar el modal
+      modalContent.appendChild(modalHeader);
+      modalContent.appendChild(modalBody);
+      modalContent.appendChild(modalFooter);
+      modalOverlay.appendChild(modalContent);
+      
+      // Agregar el modal al DOM
+      document.body.appendChild(modalOverlay);
+      
+      // Enfocar el input
+      titleInput.focus();
+      
+      // Permitir enviar con Enter
+      titleInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          saveButton.click();
+        }
+      });
+    });
+  }
+  
   // Función para guardar el archivo Marp
   async function saveMarpFile() {
     const markdownContent = marpCodeMirrorEditor.getValue();
@@ -131,47 +257,27 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     
-    // Solicitar título si es un archivo nuevo o si se quiere cambiar el título
-    let title;
-    let useExistingTitle = false;
-    
-    if (!currentFileId) {
-      title = prompt('Ingresa un título para tu archivo:');
-      if (!title || !title.trim()) {
-        alert('Debes ingresar un título para guardar el archivo');
-        return;
-      }
-    } else {
-      // Si es un archivo existente, preguntar si desea mantener el título actual
-      const keepTitle = confirm('¿Deseas mantener el título actual?');
-      if (!keepTitle) {
-        title = prompt('Ingresa un nuevo título para tu archivo:');
-        if (!title || !title.trim()) {
-          alert('Debes ingresar un título para guardar el archivo');
-          return;
-        }
-      } else {
-        // Indicar que se debe usar el título existente en el servidor
-        useExistingTitle = true;
-      }
-    }
-    
     try {
+      // Obtener el título mediante el modal personalizado
+      let title;
+      if (!currentFileId) {
+        // Nuevo archivo
+        title = await createTitleModal(true);
+      } else {
+        // Archivo existente
+        title = await createTitleModal(false);
+      }
+      
       // Preparar los datos para enviar
       const formData = new FormData();
       formData.append('content', markdownContent);
-      
-      // Si se proporciona un nuevo título, enviarlo
-      // Si se mantiene el título existente, enviar un indicador
-      if (title) {
-        formData.append('title', title);
-      } else if (useExistingTitle && currentFileId) {
-        // Enviar un título temporal para que el backend sepa que debe mantener el título existente
-        formData.append('title', 'KEEP_EXISTING_TITLE');
-      }
+      formData.append('title', title);
       
       if (currentFileId) formData.append('fileId', currentFileId);
-      formData.append('isPublic', false); // Por defecto no es público
+      
+      // Obtener el estado del toggle de público/privado
+      isPublic = publicToggle.checked;
+      formData.append('isPublic', isPublic);
       
       // Mostrar indicador de carga
       saveMarpBtn.textContent = 'Guardando...';
@@ -192,17 +298,39 @@ document.addEventListener("DOMContentLoaded", function () {
           // Actualizar la URL sin recargar la página
           window.history.replaceState({}, document.title, `/markdown/marp-editor/${currentFileId}`);
         }
-        alert('Archivo guardado correctamente');
+        // Mostrar mensaje de éxito
+        const successMessage = document.createElement('div');
+        successMessage.style.position = 'fixed';
+        successMessage.style.top = '20px';
+        successMessage.style.left = '50%';
+        successMessage.style.transform = 'translateX(-50%)';
+        successMessage.style.backgroundColor = '#4CAF50';
+        successMessage.style.color = 'white';
+        successMessage.style.padding = '10px 20px';
+        successMessage.style.borderRadius = '4px';
+        successMessage.style.zIndex = '1000';
+        successMessage.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+        successMessage.textContent = 'Archivo guardado correctamente';
+        document.body.appendChild(successMessage);
+        
+        // Eliminar el mensaje después de 3 segundos
+        setTimeout(() => {
+          document.body.removeChild(successMessage);
+        }, 3000);
       } else {
         alert(`Error al guardar: ${result.error || 'Error desconocido'}`);
       }
     } catch (error) {
-      console.error('Error al guardar el archivo:', error);
-      alert('Error al guardar el archivo. Revisa la consola para más detalles.');
+      if (error !== 'Operación cancelada') {
+        console.error('Error al guardar el archivo:', error);
+        alert('Error al guardar el archivo. Revisa la consola para más detalles.');
+      }
     } finally {
-      // Restaurar el botón
-      saveMarpBtn.textContent = 'Guardar';
-      saveMarpBtn.disabled = false;
+      // Restaurar el botón solo si no fue una operación cancelada
+      if (saveMarpBtn.disabled) {
+        saveMarpBtn.textContent = 'Guardar';
+        saveMarpBtn.disabled = false;
+      }
     }
   }
   
