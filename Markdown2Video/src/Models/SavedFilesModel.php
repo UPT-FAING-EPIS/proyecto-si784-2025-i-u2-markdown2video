@@ -49,6 +49,29 @@ class SavedFilesModel {
             return null;
         }
     }
+    
+    /**
+     * Obtiene un archivo guardado por su ID, permitiendo acceso a archivos públicos o propios del usuario.
+     * @param int $fileId ID del archivo
+     * @param int $userId ID del usuario actual
+     * @return array|null Datos del archivo o null si no se encuentra o no tiene acceso
+     */
+    public function getSavedFileByIdWithAccess(int $fileId, int $userId): ?array {
+        try {
+            // Esta consulta permite acceder al archivo si es público O si pertenece al usuario
+            $sql = "SELECT * FROM saved_files WHERE id = :id AND (is_public = 1 OR user_id = :user_id) LIMIT 1";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                'id' => $fileId,
+                'user_id' => $userId
+            ]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ?: null;
+        } catch (PDOException $e) {
+            error_log("Error en SavedFilesModel::getSavedFileByIdWithAccess: " . $e->getMessage());
+            return null;
+        }
+    }
 
     /**
      * Guarda un nuevo archivo o actualiza uno existente.

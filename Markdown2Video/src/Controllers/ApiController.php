@@ -29,10 +29,63 @@ class ApiController {
     }
     
     /**
-     * Método para obtener información de un archivo guardado.
-     * Ruta: /api/saved-files/info/{id}
+     * Obtiene información de un archivo guardado por ID
+     * Ruta: GET /api/saved-files/info/{id}
      */
-    public function getFileInfo(int $fileId): void {
+    public function getFileInfo(int $fileId): void
+    {
+        // Verificar que el usuario esté autenticado
+        if (!isset($_SESSION['user_id'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Usuario no autenticado']);
+            return;
+        }
+
+        // Verificar que sea una petición AJAX
+        if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Acceso no permitido']);
+            return;
+        }
+
+        try {
+            $savedFilesModel = new \Dales\Markdown2video\Models\SavedFilesModel($this->pdo);
+            // Primero intentamos obtener el archivo con acceso (público o propio)
+            $fileInfo = $savedFilesModel->getSavedFileByIdWithAccess($fileId, $_SESSION['user_id']);
+
+            if ($fileInfo) {
+                // Determinar si el usuario es el propietario
+                $isOwner = ($fileInfo['user_id'] == $_SESSION['user_id']);
+                
+                echo json_encode([
+                    'success' => true,
+                    'data' => [
+                        'id' => $fileInfo['id'],
+                        'title' => $fileInfo['title'],
+                        'file_type' => $fileInfo['file_type'],
+                        'is_public' => (bool)$fileInfo['is_public'],
+                        'created_at' => $fileInfo['created_at'],
+                        'updated_at' => $fileInfo['updated_at'],
+                        'is_owner' => $isOwner
+                    ]
+                ]);
+            } else {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'error' => 'Archivo no encontrado']);
+            }
+        } catch (\Exception $e) {
+            error_log('Error en getFileInfo: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => 'Error interno del servidor']);
+        }
+    }
+    
+    /**
+     * Método para obtener información de un archivo guardado con control de acceso.
+     * Permite acceder a archivos públicos o propios del usuario.
+     * Ruta: /api/saved-files/access/{id}
+     */
+    public function getFileWithAccess(int $fileId): void {
         // Verificar que la solicitud sea AJAX
         if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') {
             http_response_code(403); // Forbidden
@@ -50,8 +103,8 @@ class ApiController {
             exit();
         }
 
-        // Obtener información del archivo
-        $fileInfo = $this->savedFilesModel->getSavedFileByIdAndUserId($fileId, $userId);
+        // Obtener información del archivo (público o propio)
+        $fileInfo = $this->savedFilesModel->getSavedFileByIdWithAccess($fileId, $userId);
 
         if ($fileInfo) {
             echo json_encode([
@@ -59,15 +112,17 @@ class ApiController {
                 'data' => [
                     'id' => $fileInfo['id'],
                     'title' => $fileInfo['title'],
+                    'content' => $fileInfo['content'],
                     'file_type' => $fileInfo['file_type'],
                     'is_public' => (bool)$fileInfo['is_public'],
+                    'is_owner' => $fileInfo['user_id'] == $userId,
                     'created_at' => $fileInfo['created_at'],
                     'updated_at' => $fileInfo['updated_at']
                 ]
             ]);
         } else {
             http_response_code(404); // Not Found
-            echo json_encode(['success' => false, 'error' => 'Archivo no encontrado']);
+            echo json_encode(['success' => false, 'error' => 'Archivo no encontrado o no tienes acceso']);
         }
         exit();
     }

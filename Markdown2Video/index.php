@@ -246,6 +246,12 @@ if ($controllerNamePart === 'Api') {
         $methodToCall = 'getFileInfo';
         $params = [(int)$urlSegments[3]]; // Convertir el ID a entero
     }
+    // Ruta para obtener información de un archivo con control de acceso (público o propio)
+    elseif ($actionName === 'saved-files' && isset($urlSegments[2]) && $urlSegments[2] === 'access' && isset($urlSegments[3]) && is_numeric($urlSegments[3])) {
+        $controllerClassName = 'Dales\\Markdown2video\\Controllers\\ApiController';
+        $methodToCall = 'getFileWithAccess';
+        $params = [(int)$urlSegments[3]]; // Convertir el ID a entero
+    }
 }
 
 // VERIFICAR Y EJECUTAR EL CONTROLADOR

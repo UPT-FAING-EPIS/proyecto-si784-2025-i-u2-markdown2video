@@ -17,6 +17,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const pathSegments = window.location.pathname.split('/');
   const lastSegment = pathSegments[pathSegments.length - 1];
   
+  // Variable para controlar si el usuario es propietario del archivo
+  let isOwner = true;
+  
   // Verificar si el último segmento de la URL es un número (ID del archivo)
   if (!isNaN(lastSegment) && lastSegment.trim() !== '') {
     currentFileId = parseInt(lastSegment);
@@ -36,6 +39,26 @@ document.addEventListener("DOMContentLoaded", function () {
             // Actualizar el estado del toggle
             isPublic = data.data.is_public;
             publicToggle.checked = isPublic;
+            
+            // Verificar si el usuario es el propietario
+            if (data.data.is_owner === false) {
+              isOwner = false;
+              
+              // Deshabilitar la edición si el usuario no es el propietario
+              if (marpCodeMirrorEditor) {
+                marpCodeMirrorEditor.setOption('readOnly', true);
+              }
+              
+              // Deshabilitar el toggle y el botón de guardar
+              if (publicToggle) publicToggle.disabled = true;
+              if (saveMarpBtn) {
+                saveMarpBtn.disabled = true;
+                saveMarpBtn.title = 'Solo el propietario puede modificar este archivo';
+              }
+              
+              // Cambiar el estilo para indicar que está en modo de solo lectura
+              document.querySelector('.editor-container').classList.add('read-only-mode');
+            }
           }
         })
         .catch(error => {

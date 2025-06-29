@@ -1,5 +1,32 @@
 /* public/css/base_markdown.css */
 
+/* Estilos específicos para el editor Markdown */
+.markdown-editor-page {
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Estilos para el modo de solo lectura */
+.read-only-mode .CodeMirror {
+    background-color: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    opacity: 0.9;
+}
+
+.read-only-mode .editor-header h2::after {
+    content: " (Solo lectura)";
+    font-size: 0.8em;
+    color: #666;
+    font-style: italic;
+}
+
+.read-only-mode .generate-btn {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
 /* Estilos generales para la página (si no están en un main.css) */
 body {
     font-family: Arial, sans-serif;

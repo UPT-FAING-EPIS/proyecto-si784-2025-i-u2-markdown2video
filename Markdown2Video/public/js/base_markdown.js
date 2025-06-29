@@ -48,6 +48,48 @@ document.addEventListener('DOMContentLoaded', function () {
         // Limpiamos el sessionStorage para que no se vuelva a cargar si se recarga la página
         sessionStorage.removeItem('markdown_content_to_load');
     }
+    
+    // Verificar si estamos editando un archivo existente y si el usuario es el propietario
+    const pathSegments = window.location.pathname.split('/');
+    const lastSegment = pathSegments[pathSegments.length - 1];
+    
+    // Verificar si el último segmento de la URL es un número (ID del archivo)
+    if (!isNaN(lastSegment) && lastSegment.trim() !== '') {
+        const fileId = parseInt(lastSegment);
+        
+        // Hacer una petición para obtener la información del archivo
+        fetch(`${baseUrlJs}/api/saved-files/info/${fileId}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data) {
+                // Verificar si el usuario es el propietario
+                if (data.data.is_owner === false) {
+                    // Deshabilitar la edición si el usuario no es el propietario
+                    if (editorInstance) {
+                        editorInstance.setOption('readOnly', true);
+                    }
+                    
+                    // Cambiar el estilo para indicar que está en modo de solo lectura
+                    document.querySelector('.editor-container').classList.add('read-only-mode');
+                    
+                    // Deshabilitar los botones de generación
+                    const generateButtons = document.querySelectorAll('.generate-btn');
+                    generateButtons.forEach(button => {
+                        button.disabled = true;
+                        button.title = 'Solo el propietario puede generar contenido';
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar información del archivo:', error);
+        });
+    }
     // --- FIN DE LA NUEVA LÓGICA ---
 
 

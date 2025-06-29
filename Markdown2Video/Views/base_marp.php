@@ -20,11 +20,20 @@ echo "</script>\n";
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/theme/dracula.min.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/header.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/base_marp.css"> <!-- CSS específico para Marp -->
+    <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/notification.css"> <!-- CSS para notificaciones -->
 </head>
 <body class="marp-editor-page">
     <?php
         if (defined('VIEWS_PATH') && file_exists(VIEWS_PATH . 'header.php')) {
             include VIEWS_PATH . 'header.php';
+        }
+        
+        // Mostrar notificación si existe en la sesión
+        if (isset($_SESSION['notification'])) {
+            $type = htmlspecialchars($_SESSION['notification']['type'], ENT_QUOTES, 'UTF-8');
+            $message = htmlspecialchars($_SESSION['notification']['message'], ENT_QUOTES, 'UTF-8');
+            echo "<script>document.addEventListener('DOMContentLoaded', function() { NotificationSystem.show('$message', '$type', 5000); });</script>";
+            unset($_SESSION['notification']); // Limpiar la notificación después de mostrarla
         }
     ?>
     <div class="marp-editor-page-container">
@@ -66,6 +75,7 @@ echo "</script>\n";
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/mode/markdown/markdown.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/addon/edit/continuelist.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/addon/display/placeholder.js"></script>
+    <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/notification.js"></script>
     <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/base_marp.js"></script>
 </body>
 </html>

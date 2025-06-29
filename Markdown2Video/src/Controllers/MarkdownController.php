@@ -58,13 +58,23 @@ class MarkdownController
         // Si se proporciona un ID de archivo, cargamos su contenido
         if ($fileId !== null && $this->pdo) {
             $savedFilesModel = new \Dales\Markdown2video\Models\SavedFilesModel($this->pdo);
-            $fileData = $savedFilesModel->getSavedFileByIdAndUserId($fileId, $_SESSION['user_id']);
+            // Usar el método con control de acceso para permitir ver archivos públicos
+            $fileData = $savedFilesModel->getSavedFileByIdWithAccess($fileId, $_SESSION['user_id']);
             
             if ($fileData && $fileData['file_type'] === 'markdown') {
                 $initialContent = $fileData['content'];
-                $pageTitle = "Editar: " . htmlspecialchars($fileData['title'], ENT_QUOTES, 'UTF-8');
+                $isOwner = $fileData['user_id'] == $_SESSION['user_id'];
+                $pageTitle = ($isOwner ? "Editar: " : "Ver: ") . htmlspecialchars($fileData['title'], ENT_QUOTES, 'UTF-8');
+                
+                // Si el usuario no es el propietario, mostrar una notificación
+                if (!$isOwner) {
+                    $_SESSION['notification'] = [
+                        'type' => 'info',
+                        'message' => 'Estás viendo un archivo público. Solo el propietario puede modificarlo.'
+                    ];
+                }
             } else {
-                // Si el archivo no existe o no es del tipo correcto, redirigimos al dashboard
+                // Si el archivo no existe, no es del tipo correcto o no tiene acceso, redirigimos al dashboard
                 header('Location: ' . BASE_URL . '/dashboard');
                 exit;
             }
@@ -107,18 +117,24 @@ class MarkdownController
             return;
         }
 
-        // Si es un archivo existente y se indica mantener el título actual
-        if ($fileId && $title === 'KEEP_EXISTING_TITLE') {
-            // Obtener el título actual del archivo
-            $savedFilesModel = new \Dales\Markdown2video\Models\SavedFilesModel($this->pdo);
+        // Inicializar el modelo de archivos guardados
+        $savedFilesModel = new \Dales\Markdown2video\Models\SavedFilesModel($this->pdo);
+        
+        // Si es un archivo existente, verificar que el usuario sea el propietario
+        if ($fileId) {
+            // Obtener el archivo existente
             $existingFile = $savedFilesModel->getSavedFileByIdAndUserId($fileId, $_SESSION['user_id']);
             
-            if ($existingFile) {
-                $title = $existingFile['title'];
-            } else {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'error' => 'Archivo no encontrado']);
+            // Verificar que el archivo exista y pertenezca al usuario actual
+            if (!$existingFile) {
+                http_response_code(403); // Forbidden
+                echo json_encode(['success' => false, 'error' => 'No tienes permiso para modificar este archivo']);
                 return;
+            }
+            
+            // Si se indica mantener el título actual
+            if ($title === 'KEEP_EXISTING_TITLE') {
+                $title = $existingFile['title'];
             }
         }
         // Validar que el título no esté vacío
@@ -130,7 +146,7 @@ class MarkdownController
 
         try {
             // Guardar el archivo en la base de datos
-            $savedFilesModel = new \Dales\Markdown2video\Models\SavedFilesModel($this->pdo);
+            // El modelo ya está inicializado arriba
             $result = $savedFilesModel->saveFile(
                 $_SESSION['user_id'],
                 $title,
@@ -179,13 +195,23 @@ class MarkdownController
         // Si se proporciona un ID de archivo, cargamos su contenido
         if ($fileId !== null && $this->pdo) {
             $savedFilesModel = new \Dales\Markdown2video\Models\SavedFilesModel($this->pdo);
-            $fileData = $savedFilesModel->getSavedFileByIdAndUserId($fileId, $_SESSION['user_id']);
+            // Usar el método con control de acceso para permitir ver archivos públicos
+            $fileData = $savedFilesModel->getSavedFileByIdWithAccess($fileId, $_SESSION['user_id']);
             
             if ($fileData && $fileData['file_type'] === 'marp') {
                 $initialContent = $fileData['content'];
-                $pageTitle = "Editar: " . htmlspecialchars($fileData['title'], ENT_QUOTES, 'UTF-8');
+                $isOwner = $fileData['user_id'] == $_SESSION['user_id'];
+                $pageTitle = ($isOwner ? "Editar: " : "Ver: ") . htmlspecialchars($fileData['title'], ENT_QUOTES, 'UTF-8');
+                
+                // Si el usuario no es el propietario, mostrar una notificación
+                if (!$isOwner) {
+                    $_SESSION['notification'] = [
+                        'type' => 'info',
+                        'message' => 'Estás viendo un archivo público. Solo el propietario puede modificarlo.'
+                    ];
+                }
             } else {
-                // Si el archivo no existe o no es del tipo correcto, redirigimos al dashboard
+                // Si el archivo no existe, no es del tipo correcto o no tiene acceso, redirigimos al dashboard
                 header('Location: ' . BASE_URL . '/dashboard');
                 exit;
             }

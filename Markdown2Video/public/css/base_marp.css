@@ -11,6 +11,29 @@ body.marp-editor-page {
     /* padding-top: 60px; */ 
 }
 
+/* Estilos para el modo de solo lectura */
+.read-only-mode .CodeMirror {
+    background-color: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    opacity: 0.9;
+}
+
+.read-only-mode .editor-header h2::after {
+    content: " (Solo lectura)";
+    font-size: 0.8em;
+    color: #666;
+    font-style: italic;
+}
+
+.read-only-mode .public-toggle-container {
+    opacity: 0.6;
+}
+
+.read-only-mode #save-marp-btn {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
 .marp-editor-page-container {
     display: flex;
     height: calc(100vh - 60px); /* AJUSTA 60px a la altura real de tu header si está en el flujo */
