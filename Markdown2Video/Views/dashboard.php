@@ -198,6 +198,14 @@ $marpTemplates = $marpTemplates ?? [];
                 margin-top: 30px;
             }
         }
+        @media (max-width: 992px) {
+            .saved-files-table th:nth-child(5),
+            .saved-files-table td:nth-child(5),
+            .saved-files-table th:nth-child(6),
+            .saved-files-table td:nth-child(6) {
+                display: none;
+            }
+        }
         @media (max-width: 768px) {
             .saved-files-table th:nth-child(3),
             .saved-files-table td:nth-child(3) {
@@ -252,41 +260,18 @@ $marpTemplates = $marpTemplates ?? [];
                                 <th>Tipo</th>
                                 <th>Modificado</th>
                                 <th>Público</th>
+                                <th>Plantilla</th>
+                                <th>Vista Previa</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <!-- Aquí se mostrarán los archivos guardados del usuario -->
-                            <!-- Esta es solo una representación visual, los datos reales vendrán de la base de datos -->
-                            <tr>
-                                <td>Presentación Proyecto</td>
-                                <td><span class="badge badge-marp">Marp</span></td>
-                                <td>2023-06-15</td>
-                                <td><i class="fa-solid fa-check" style="color: #28a745;"></i></td>
-                                <td>
-                                    <a href="#" class="action-icon" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
-                                    <a href="#" class="action-icon-delete" title="Eliminar"><i class="fa-solid fa-trash"></i></a>
-                                </td>
+                        <tbody id="savedFilesTableBody">
+                            <!-- Los archivos guardados se cargarán dinámicamente desde JavaScript -->
+                            <tr id="loadingRow">
+                                <td colspan="7" style="text-align: center;">Cargando archivos guardados...</td>
                             </tr>
-                            <tr>
-                                <td>Documentación API</td>
-                                <td><span class="badge badge-markdown">Markdown</span></td>
-                                <td>2023-06-10</td>
-                                <td><i class="fa-solid fa-xmark" style="color: #dc3545;"></i></td>
-                                <td>
-                                    <a href="#" class="action-icon" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
-                                    <a href="#" class="action-icon-delete" title="Eliminar"><i class="fa-solid fa-trash"></i></a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Notas Reunión</td>
-                                <td><span class="badge badge-markdown">Markdown</span></td>
-                                <td>2023-06-05</td>
-                                <td><i class="fa-solid fa-check" style="color: #28a745;"></i></td>
-                                <td>
-                                    <a href="#" class="action-icon" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
-                                    <a href="#" class="action-icon-delete" title="Eliminar"><i class="fa-solid fa-trash"></i></a>
-                                </td>
+                            <tr id="noFilesRow" style="display: none;">
+                                <td colspan="7" style="text-align: center;">No tienes archivos guardados.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -352,6 +337,7 @@ $marpTemplates = $marpTemplates ?? [];
         window.BASE_APP_URL = <?php echo json_encode($base_url); ?>;
     </script>
     <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/dashboard_handler.js"></script>
+    <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/dashboard_saved_files.js"></script>
 
 </body>
 </html>

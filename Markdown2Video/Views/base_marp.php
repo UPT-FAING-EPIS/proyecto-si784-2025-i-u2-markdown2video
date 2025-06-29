@@ -20,6 +20,7 @@ echo "</script>\n";
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/theme/dracula.min.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/header.css">
     <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/base_marp.css"> <!-- CSS específico para Marp -->
+    <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/save_file_modal.css">
 </head>
 <body class="marp-editor-page">
     <?php
@@ -31,10 +32,14 @@ echo "</script>\n";
         <div class="editor-container">
             <div class="editor-header">
                 <h2>Editor (Marp)</h2>
-                <select id="mode-select-marp-page" class="mode-selector"> <!-- ID DIFERENTE -->
-                    <option value="marp" selected>Marp</option>
-                    <option value="markdown">Markdown Estándar</option>
-                </select>
+                <div class="editor-controls">
+                    <!-- Botón para guardar el contenido del editor -->
+                    <button id="saveFileBtn" class="icon-btn" title="Guardar archivo"><i class="fa-solid fa-save"></i></button>
+                    <select id="mode-select-marp-page" class="mode-selector"> <!-- ID DIFERENTE -->
+                        <option value="marp" selected>Marp</option>
+                        <option value="markdown">Markdown Estándar</option>
+                    </select>
+                </div>
             </div>
             <div class="editor-body">
                 <textarea id="editor-marp" class="editor" placeholder="Escribe tu presentación Marp aquí..."><?php echo isset($initialContent) ? htmlspecialchars($initialContent, ENT_QUOTES, 'UTF-8') : ''; ?></textarea> <!-- ID DIFERENTE -->
@@ -57,5 +62,6 @@ echo "</script>\n";
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/addon/edit/continuelist.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.4/addon/display/placeholder.js"></script>
     <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/base_marp.js"></script>
+    <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/save_file.js"></script>
 </body>
 </html>

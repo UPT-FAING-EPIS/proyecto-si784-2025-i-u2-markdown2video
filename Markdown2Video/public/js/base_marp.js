@@ -334,10 +334,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   
   /**
-   * Genera imágenes PNG a partir del contenido Markdown
+   * Genera imágenes JPG a partir del contenido Markdown
    */
   async function generateJpg() {
-    console.log("[MARP-UI] Iniciando generación de PNG");
+    console.log("[MARP-UI] Iniciando generación de JPG");
     const markdownContent = marpCodeMirrorEditor.getValue();
     console.log(
       `[MARP-UI] Longitud del contenido Markdown: ${markdownContent.length} caracteres`
@@ -346,7 +346,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!markdownContent.trim()) {
       console.error("[MARP-UI-ERROR] Contenido Markdown vacío");
       alert(
-        "Por favor, escribe contenido en el editor antes de generar las imágenes PNG."
+        "Por favor, escribe contenido en el editor antes de generar las imágenes JPG."
       );
       return;
     }
@@ -354,7 +354,7 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("[MARP-UI] Mostrando indicador de carga");
     const jpgButton = document.querySelector('[data-format="jpg"]');
     const originalText = jpgButton.textContent;
-    jpgButton.textContent = "Generando PNG...";
+    jpgButton.textContent = "Generando JPG...";
     jpgButton.disabled = true;
 
     try {
@@ -380,17 +380,17 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       if (result.success) {
-        console.log("[MARP-UI] PNG generado exitosamente");
+        console.log("[MARP-UI] JPG generado exitosamente");
         window.open(result.downloadPageUrl, "_blank");
       } else {
         console.error("[MARP-UI-ERROR] Error en la generación:", result.error);
         alert(
-          "Error al generar el PNG: " + (result.error || "Error desconocido")
+          "Error al generar el JPG: " + (result.error || "Error desconocido")
         );
       }
     } catch (error) {
       console.error("[MARP-UI-ERROR] Error completo:", error);
-      alert("Error al generar el PNG. Revisa la consola para más detalles.");
+      alert("Error al generar el JPG. Revisa la consola para más detalles.");
     } finally {
       console.log("[MARP-UI] Finalizando proceso de generación");
       jpgButton.textContent = originalText;
@@ -398,5 +398,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  // Cargar contenido inicial si se está editando un archivo guardado
+  if (window.initialContent) {
+    marpCodeMirrorEditor.setValue(window.initialContent);
+  } else {
+    // Carga el contenido desde sessionStorage si existe
+    const contentToLoad = sessionStorage.getItem('marp_content_to_load');
+    if (contentToLoad && marpCodeMirrorEditor) {
+      marpCodeMirrorEditor.setValue(contentToLoad);
+      // Limpiamos el sessionStorage para que no se vuelva a cargar si se recarga la página
+      sessionStorage.removeItem('marp_content_to_load');
+    }
+  }
+  
   setTimeout(updateMarpPreview, 100);
 });

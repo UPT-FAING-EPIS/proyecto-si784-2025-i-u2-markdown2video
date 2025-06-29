@@ -220,6 +220,18 @@ if ($controllerClassName === 'Dales\\Markdown2video\\Controllers\\AuthController
         // El ID de la plantilla (el número) se pasa como parámetro al método.
         $params = [$urlSegments[2]];
     }
+} elseif ($controllerClassName === 'Dales\\Markdown2video\\Controllers\\SavedFileController') {
+    if ($actionName === 'save-file' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $methodToCall = 'saveFile';
+    } elseif ($actionName === 'get-user-files' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $methodToCall = 'getUserFiles';
+    } elseif ($actionName === 'get-file' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $methodToCall = 'getFile';
+    } elseif ($actionName === 'update-file' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $methodToCall = 'updateFile';
+    } elseif ($actionName === 'delete-file' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $methodToCall = 'deleteFile';
+    }
 }
 
 
@@ -233,6 +245,7 @@ if (class_exists($controllerClassName)) {
             'Dales\\Markdown2video\\Controllers\\DashboardController',
             'Dales\\Markdown2video\\Controllers\\MarkdownController',
             'Dales\\Markdown2video\\Controllers\\ImageController',
+            'Dales\\Markdown2video\\Controllers\\SavedFileController',
         ];
 
         if (in_array($controllerClassName, $controllersRequiringPdo)) {

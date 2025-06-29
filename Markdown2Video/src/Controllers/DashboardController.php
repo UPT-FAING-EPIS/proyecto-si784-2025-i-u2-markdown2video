@@ -5,6 +5,7 @@ namespace Dales\Markdown2video\Controllers;
 // --- ¡NUEVO! ---
 // Se importa el TemplateModel para poder obtener las plantillas.
 use Dales\Markdown2video\Models\TemplateModel;
+use Dales\Markdown2video\Models\SavedFileModel;
 use PDO;
 
 class DashboardController {
@@ -14,6 +15,7 @@ class DashboardController {
     // --- ¡NUEVO! ---
     // Se añade la propiedad para el modelo de plantillas.
     private ?TemplateModel $templateModel = null;
+    private ?SavedFileModel $savedFileModel = null;
 
     /**
      * Constructor para DashboardController.
@@ -27,6 +29,7 @@ class DashboardController {
         // Si hay conexión a la base de datos, creamos una instancia del TemplateModel.
         if ($this->pdo) {
             $this->templateModel = new TemplateModel($this->pdo);
+            $this->savedFileModel = new SavedFileModel($this->pdo);
         }
 
         // --- VERIFICACIÓN DE AUTENTICACIÓN (Tu código original, se mantiene) ---

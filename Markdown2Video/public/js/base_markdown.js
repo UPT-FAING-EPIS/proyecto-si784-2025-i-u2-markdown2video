@@ -41,12 +41,17 @@ document.addEventListener('DOMContentLoaded', function () {
     } catch (e) { console.error("JS ERROR: CodeMirror init falló:", e); return; }
 
     // --- ¡AQUÍ ESTÁ LA NUEVA LÓGICA AÑADIDA! ---
-    // Carga el contenido desde sessionStorage si existe (después de arrastrar un archivo en el dashboard)
-    const contentToLoad = sessionStorage.getItem('markdown_content_to_load');
-    if (contentToLoad && editorInstance) {
-        editorInstance.setValue(contentToLoad);
-        // Limpiamos el sessionStorage para que no se vuelva a cargar si se recarga la página
-        sessionStorage.removeItem('markdown_content_to_load');
+    // Cargar contenido inicial si se está editando un archivo guardado
+    if (window.initialContent) {
+        editorInstance.setValue(window.initialContent);
+    } else {
+        // Carga el contenido desde sessionStorage si existe (después de arrastrar un archivo en el dashboard)
+        const contentToLoad = sessionStorage.getItem('markdown_content_to_load');
+        if (contentToLoad && editorInstance) {
+            editorInstance.setValue(contentToLoad);
+            // Limpiamos el sessionStorage para que no se vuelva a cargar si se recarga la página
+            sessionStorage.removeItem('markdown_content_to_load');
+        }
     }
     // --- FIN DE LA NUEVA LÓGICA ---
 

@@ -45,6 +45,28 @@ body {
 }
 .editor-header h2 { margin: 0; font-size: 1.2em; }
 
+.editor-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1em;
+  color: #555;
+  padding: 5px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.icon-btn:hover {
+  background-color: #f0f0f0;
+  color: #000;
+}
+
 .mode-selector {
   font-size: 0.9em;
   padding: 5px 8px;

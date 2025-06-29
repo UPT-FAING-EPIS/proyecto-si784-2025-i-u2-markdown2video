@@ -31,8 +31,9 @@ echo "</script>\n";
   <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/base_markdown.css">
   <!-- ¡NUEVO! Enlace al nuevo archivo CSS para el modal -->
   <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/modal_and_gallery.css">
-    <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/mermaid.css">
-        <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/preview_styles.css">
+  <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/mermaid.css">
+  <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/preview_styles.css">
+  <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/save_file_modal.css">
   <!-- En el <head> de base_markdown.php -->
 <script src="https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.min.js"></script>
 </head>
@@ -47,6 +48,8 @@ echo "</script>\n";
         <div class="editor-controls">
             <!-- ¡NUEVO! Botón para abrir el modal de imágenes -->
             <button id="openImageModalBtn" class="icon-btn" title="Gestionar imágenes"><i class="fa-solid fa-image"></i></button>
+            <!-- Botón para guardar el contenido del editor -->
+            <button id="saveFileBtn" class="icon-btn" title="Guardar archivo"><i class="fa-solid fa-save"></i></button>
             <select id="mode-select" class="mode-selector">
                 <option value="markdown" selected>Markdown Estándar</option>
                 <option value="marp">Marp</option>
@@ -167,6 +170,7 @@ echo "</script>\n";
   
   <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/base_markdown.js"></script>
   <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/mermaid_handler.js"></script>
-    <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/resizable_images.js"></script>
+  <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/resizable_images.js"></script>
+  <script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/save_file.js"></script>
 </body>
 </html>

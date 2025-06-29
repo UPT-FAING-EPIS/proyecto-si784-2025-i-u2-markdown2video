@@ -48,6 +48,22 @@ class MarkdownController
             $_SESSION['csrf_token_image_action'] = bin2hex(random_bytes(32));
         }
         $csrf_token_image_action = $_SESSION['csrf_token_image_action'];
+        
+        // Verificar si se está cargando un archivo guardado
+        $fileId = isset($_GET['file_id']) ? (int)$_GET['file_id'] : null;
+        $initialContent = '';
+        
+        if ($fileId && $this->pdo) {
+            // Cargar el archivo guardado
+            $savedFileModel = new \Dales\Markdown2video\Models\SavedFileModel($this->pdo);
+            $file = $savedFileModel->getFileById($fileId, $_SESSION['user_id']);
+            
+            if ($file && $file['file_type'] === 'markdown') {
+                $initialContent = $file['content'];
+                // Pasar el contenido inicial al editor mediante JavaScript
+                echo "<script>window.initialContent = " . json_encode($initialContent) . ";</script>";
+            }
+        }
 
         $viewPath = VIEWS_PATH . 'base_markdown.php';
         if (file_exists($viewPath)) {
@@ -72,7 +88,21 @@ class MarkdownController
         }
         $csrf_token_marp_generate = $_SESSION['csrf_token_marp_generate'];
         
+        // Verificar si se está cargando un archivo guardado
+        $fileId = isset($_GET['file_id']) ? (int)$_GET['file_id'] : null;
         $initialContent = '';
+        
+        if ($fileId && $this->pdo) {
+            // Cargar el archivo guardado
+            $savedFileModel = new \Dales\Markdown2video\Models\SavedFileModel($this->pdo);
+            $file = $savedFileModel->getFileById($fileId, $_SESSION['user_id']);
+            
+            if ($file && $file['file_type'] === 'marp') {
+                $initialContent = $file['content'];
+                // Pasar el contenido inicial al editor mediante JavaScript
+                echo "<script>window.initialContent = " . json_encode($initialContent) . ";</script>";
+            }
+        }
 
         $viewPath = VIEWS_PATH . 'base_marp.php'; // Asume que es Views/base_marp.php
         if (file_exists($viewPath)) {
