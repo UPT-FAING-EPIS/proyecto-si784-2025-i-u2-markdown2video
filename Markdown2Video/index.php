@@ -154,8 +154,16 @@ if ($controllerClassName === 'Dales\\Markdown2video\\Controllers\\AuthController
 } elseif ($controllerClassName === 'Dales\\Markdown2video\\Controllers\\MarkdownController') {
     if ($actionName === 'create' && $_SERVER['REQUEST_METHOD'] === 'GET') { 
         $methodToCall = 'create'; 
-    } elseif ($actionName === 'marp-editor' && $_SERVER['REQUEST_METHOD'] === 'GET') { 
-        $methodToCall = 'showMarpEditor'; 
+    } elseif ($actionName === 'marp-editor' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        if (isset($urlSegments[2]) && is_numeric($urlSegments[2])) {
+            $methodToCall = 'showMarpEditor';
+            $params = [(int)$urlSegments[2]]; // Pasar el ID del archivo como parámetro
+        } else {
+            $methodToCall = 'showMarpEditor';
+        }
+    } elseif ($actionName === 'edit' && isset($urlSegments[2]) && is_numeric($urlSegments[2]) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $methodToCall = 'create';
+        $params = [(int)$urlSegments[2]]; // Pasar el ID del archivo como parámetro
     } elseif ($actionName === 'render-marp-preview' && $_SERVER['REQUEST_METHOD'] === 'POST') { 
         $methodToCall = 'renderMarpPreview'; 
     } 

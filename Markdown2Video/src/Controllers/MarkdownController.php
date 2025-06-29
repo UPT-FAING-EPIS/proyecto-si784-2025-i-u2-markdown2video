@@ -32,10 +32,16 @@ class MarkdownController
      */
     // Reemplaza el método create() en src/Controllers/MarkdownController.php
 
-    public function create(): void
+    /**
+     * Muestra el editor de Markdown.
+     * Ruta: GET /markdown/create
+     * Ruta: GET /markdown/edit/{id}
+     */
+    public function create(?int $fileId = null): void
     {
         $base_url = BASE_URL;
         $pageTitle = "Editor de Presentación (Markdown)";
+        $initialContent = '';
 
         // Token para PDF
         if (empty($_SESSION['csrf_token_generate_pdf'])) {
@@ -48,6 +54,21 @@ class MarkdownController
             $_SESSION['csrf_token_image_action'] = bin2hex(random_bytes(32));
         }
         $csrf_token_image_action = $_SESSION['csrf_token_image_action'];
+        
+        // Si se proporciona un ID de archivo, cargamos su contenido
+        if ($fileId !== null && $this->pdo) {
+            $savedFilesModel = new \Dales\Markdown2video\Models\SavedFilesModel($this->pdo);
+            $fileData = $savedFilesModel->getSavedFileByIdAndUserId($fileId, $_SESSION['user_id']);
+            
+            if ($fileData && $fileData['file_type'] === 'markdown') {
+                $initialContent = $fileData['content'];
+                $pageTitle = "Editar: " . htmlspecialchars($fileData['title'], ENT_QUOTES, 'UTF-8');
+            } else {
+                // Si el archivo no existe o no es del tipo correcto, redirigimos al dashboard
+                header('Location: ' . BASE_URL . '/dashboard');
+                exit;
+            }
+        }
 
         $viewPath = VIEWS_PATH . 'base_markdown.php';
         if (file_exists($viewPath)) {
@@ -62,8 +83,9 @@ class MarkdownController
     /**
      * Muestra el editor para Marp.
      * Ruta: GET /markdown/marp-editor
+     * Ruta: GET /markdown/marp-editor/{id}
      */
-    public function showMarpEditor(): void
+    public function showMarpEditor(?int $fileId = null): void
     {
         $base_url = BASE_URL;
         $pageTitle = "Editor de Presentación (Marp)";
@@ -73,6 +95,21 @@ class MarkdownController
         $csrf_token_marp_generate = $_SESSION['csrf_token_marp_generate'];
         
         $initialContent = '';
+        
+        // Si se proporciona un ID de archivo, cargamos su contenido
+        if ($fileId !== null && $this->pdo) {
+            $savedFilesModel = new \Dales\Markdown2video\Models\SavedFilesModel($this->pdo);
+            $fileData = $savedFilesModel->getSavedFileByIdAndUserId($fileId, $_SESSION['user_id']);
+            
+            if ($fileData && $fileData['file_type'] === 'marp') {
+                $initialContent = $fileData['content'];
+                $pageTitle = "Editar: " . htmlspecialchars($fileData['title'], ENT_QUOTES, 'UTF-8');
+            } else {
+                // Si el archivo no existe o no es del tipo correcto, redirigimos al dashboard
+                header('Location: ' . BASE_URL . '/dashboard');
+                exit;
+            }
+        }
 
         $viewPath = VIEWS_PATH . 'base_marp.php'; // Asume que es Views/base_marp.php
         if (file_exists($viewPath)) {

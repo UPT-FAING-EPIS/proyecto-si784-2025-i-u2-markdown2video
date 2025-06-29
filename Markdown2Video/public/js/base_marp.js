@@ -25,6 +25,14 @@ document.addEventListener("DOMContentLoaded", function () {
     extraKeys: { Enter: "newlineAndIndentContinueMarkdownList" },
   });
 
+  // Carga el contenido desde sessionStorage si existe (después de arrastrar un archivo o editar uno existente)
+  const contentToLoad = sessionStorage.getItem('markdown_content_to_load');
+  if (contentToLoad && marpCodeMirrorEditor) {
+    marpCodeMirrorEditor.setValue(contentToLoad);
+    // Limpiamos el sessionStorage para que no se vuelva a cargar si se recarga la página
+    sessionStorage.removeItem('markdown_content_to_load');
+  }
+
   function refreshMarpEditorLayout() {
     marpCodeMirrorEditor.setSize("100%", "100%");
     marpCodeMirrorEditor.refresh();

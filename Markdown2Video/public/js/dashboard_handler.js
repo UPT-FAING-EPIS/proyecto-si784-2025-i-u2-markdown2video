@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Inicializar manejadores para la tabla de archivos guardados
     initSavedFilesHandlers();
+    
+    // Inicializar manejadores para los botones de editar
+    initEditButtonHandlers();
 
     if (!dropZone || !fileInput) {
         console.warn("Elementos para 'Abrir Archivo' no encontrados en el DOM.");
@@ -111,6 +114,31 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.error('Error:', error);
                         alert('Error al procesar la solicitud. Por favor, inténtalo de nuevo.');
                     });
+                }
+            });
+        });
+    }
+    
+    // --- Función para inicializar manejadores de eventos para los botones de editar ---
+    function initEditButtonHandlers() {
+        // Manejador para botones de edición de archivos
+        document.querySelectorAll('.action-icon').forEach(button => {
+            button.addEventListener('click', function(e) {
+                // No prevenimos el evento predeterminado para permitir la navegación al enlace
+                // pero guardamos el ID del archivo y su tipo para cargarlo en el editor
+                const editUrl = this.getAttribute('href');
+                if (editUrl) {
+                    // Extraer el ID del archivo de la URL
+                    const urlParts = editUrl.split('/');
+                    const fileId = urlParts[urlParts.length - 1];
+                    
+                    // Determinar si es un archivo Marp o Markdown estándar
+                    const isMarp = editUrl.includes('/marp-editor/');
+                    
+                    // Almacenar en sessionStorage que estamos editando un archivo existente
+                    sessionStorage.setItem('editing_existing_file', 'true');
+                    sessionStorage.setItem('editing_file_id', fileId);
+                    sessionStorage.setItem('editing_file_type', isMarp ? 'marp' : 'markdown');
                 }
             });
         });
