@@ -277,7 +277,7 @@ document.addEventListener("DOMContentLoaded", function () {
       
       // Obtener el estado del toggle de público/privado
       isPublic = publicToggle.checked;
-      formData.append('isPublic', isPublic);
+      formData.append('isPublic', isPublic ? '1' : '0'); // Enviar como '1' o '0' para asegurar la conversión correcta en PHP
       
       // Mostrar indicador de carga
       saveMarpBtn.textContent = 'Guardando...';

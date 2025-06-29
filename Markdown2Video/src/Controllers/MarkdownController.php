@@ -97,7 +97,8 @@ class MarkdownController
         $content = $_POST['content'] ?? '';
         $title = $_POST['title'] ?? '';
         $fileId = isset($_POST['fileId']) && is_numeric($_POST['fileId']) ? (int)$_POST['fileId'] : null;
-        $isPublic = isset($_POST['isPublic']) ? (bool)$_POST['isPublic'] : false;
+        // Convertir isPublic a booleano correctamente
+        $isPublic = isset($_POST['isPublic']) && ($_POST['isPublic'] === '1' || $_POST['isPublic'] === 'true' || $_POST['isPublic'] === true);
 
         // Validar que el contenido no esté vacío
         if (empty($content)) {
