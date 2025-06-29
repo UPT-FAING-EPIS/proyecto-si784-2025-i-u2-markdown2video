@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // La variable window.BASE_APP_URL es creada por tu vista PHP
     const baseUrl = window.BASE_APP_URL || ''; 
 
+    // Inicializar manejadores para la tabla de archivos guardados
+    initSavedFilesHandlers();
+
     if (!dropZone || !fileInput) {
         console.warn("Elementos para 'Abrir Archivo' no encontrados en el DOM.");
         return;
@@ -60,5 +63,56 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = baseUrl + '/markdown/create';
         };
         reader.readAsText(file);
+    }
+
+    // --- Función para inicializar manejadores de eventos para la tabla de archivos guardados ---
+    function initSavedFilesHandlers() {
+        // Manejador para botones de eliminación de archivos
+        document.querySelectorAll('.action-icon-delete').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const fileId = this.getAttribute('data-file-id');
+                if (!fileId) {
+                    console.error('No se encontró el ID del archivo');
+                    return;
+                }
+
+                if (confirm('¿Estás seguro de que deseas eliminar este archivo? Esta acción no se puede deshacer.')) {
+                    // Realizar la solicitud AJAX para eliminar el archivo
+                    fetch(baseUrl + '/api/saved-files/delete/' + fileId, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            file_id: fileId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Eliminar la fila de la tabla
+                            const row = this.closest('tr');
+                            row.parentNode.removeChild(row);
+                            
+                            // Verificar si la tabla está vacía y mostrar mensaje
+                            const tbody = document.querySelector('.saved-files-table tbody');
+                            if (tbody.children.length === 0) {
+                                const emptyRow = document.createElement('tr');
+                                emptyRow.innerHTML = '<td colspan="5" class="text-center">No tienes archivos guardados aún.</td>';
+                                tbody.appendChild(emptyRow);
+                            }
+                        } else {
+                            alert('Error al eliminar el archivo: ' + (data.message || 'Error desconocido'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al procesar la solicitud. Por favor, inténtalo de nuevo.');
+                    });
+                }
+            });
+        });
     }
 });

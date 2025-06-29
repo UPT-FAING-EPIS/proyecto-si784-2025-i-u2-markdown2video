@@ -2,18 +2,18 @@
 // Define el namespace correcto basado en tu estructura y configuración de composer.json
 namespace Dales\Markdown2video\Controllers;
 
-// --- ¡NUEVO! ---
-// Se importa el TemplateModel para poder obtener las plantillas.
+// Importamos los modelos necesarios
 use Dales\Markdown2video\Models\TemplateModel;
+use Dales\Markdown2video\Models\SavedFilesModel;
 use PDO;
 
 class DashboardController {
 
     private ?PDO $pdo;
     
-    // --- ¡NUEVO! ---
-    // Se añade la propiedad para el modelo de plantillas.
+    // Propiedades para los modelos
     private ?TemplateModel $templateModel = null;
+    private ?SavedFilesModel $savedFilesModel = null;
 
     /**
      * Constructor para DashboardController.
@@ -23,10 +23,10 @@ class DashboardController {
     public function __construct(?PDO $pdo = null) {
         $this->pdo = $pdo;
 
-        // --- ¡NUEVO! ---
-        // Si hay conexión a la base de datos, creamos una instancia del TemplateModel.
+        // Si hay conexión a la base de datos, creamos instancias de los modelos necesarios
         if ($this->pdo) {
             $this->templateModel = new TemplateModel($this->pdo);
+            $this->savedFilesModel = new SavedFilesModel($this->pdo);
         }
 
         // --- VERIFICACIÓN DE AUTENTICACIÓN (Tu código original, se mantiene) ---
@@ -51,6 +51,9 @@ class DashboardController {
         // Obtenemos las plantillas separadas por tipo
         $markdownTemplates = $this->templateModel ? $this->templateModel->getActiveTemplates('markdown') : [];
         $marpTemplates = $this->templateModel ? $this->templateModel->getActiveTemplates('marp') : [];
+        
+        // Obtenemos los archivos guardados del usuario
+        $savedFiles = $this->savedFilesModel ? $this->savedFilesModel->getSavedFilesByUserId($userId) : [];
 
         // 2. Preparar variables que la vista necesitará (Tu código original)
         $pageTitle = "Dashboard Principal";

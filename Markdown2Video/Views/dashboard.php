@@ -256,38 +256,41 @@ $marpTemplates = $marpTemplates ?? [];
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Aquí se mostrarán los archivos guardados del usuario -->
-                            <!-- Esta es solo una representación visual, los datos reales vendrán de la base de datos -->
+                            <?php if (empty($savedFiles)): ?>
                             <tr>
-                                <td>Presentación Proyecto</td>
-                                <td><span class="badge badge-marp">Marp</span></td>
-                                <td>2023-06-15</td>
-                                <td><i class="fa-solid fa-check" style="color: #28a745;"></i></td>
-                                <td>
-                                    <a href="#" class="action-icon" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
-                                    <a href="#" class="action-icon-delete" title="Eliminar"><i class="fa-solid fa-trash"></i></a>
-                                </td>
+                                <td colspan="5" class="text-center">No tienes archivos guardados aún.</td>
                             </tr>
-                            <tr>
-                                <td>Documentación API</td>
-                                <td><span class="badge badge-markdown">Markdown</span></td>
-                                <td>2023-06-10</td>
-                                <td><i class="fa-solid fa-xmark" style="color: #dc3545;"></i></td>
-                                <td>
-                                    <a href="#" class="action-icon" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
-                                    <a href="#" class="action-icon-delete" title="Eliminar"><i class="fa-solid fa-trash"></i></a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Notas Reunión</td>
-                                <td><span class="badge badge-markdown">Markdown</span></td>
-                                <td>2023-06-05</td>
-                                <td><i class="fa-solid fa-check" style="color: #28a745;"></i></td>
-                                <td>
-                                    <a href="#" class="action-icon" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
-                                    <a href="#" class="action-icon-delete" title="Eliminar"><i class="fa-solid fa-trash"></i></a>
-                                </td>
-                            </tr>
+                            <?php else: ?>
+                                <?php foreach ($savedFiles as $file): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($file['title'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td>
+                                        <?php if ($file['file_type'] === 'marp'): ?>
+                                        <span class="badge badge-marp">Marp</span>
+                                        <?php else: ?>
+                                        <span class="badge badge-markdown">Markdown</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?php echo date('Y-m-d', strtotime($file['updated_at'])); ?></td>
+                                    <td>
+                                        <?php if ($file['is_public']): ?>
+                                        <i class="fa-solid fa-check" style="color: #28a745;"></i>
+                                        <?php else: ?>
+                                        <i class="fa-solid fa-xmark" style="color: #dc3545;"></i>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                        $editUrl = $file['file_type'] === 'marp' 
+                                            ? $base_url . '/markdown/marp-editor/' . $file['id']
+                                            : $base_url . '/markdown/edit/' . $file['id'];
+                                        ?>
+                                        <a href="<?php echo htmlspecialchars($editUrl, ENT_QUOTES, 'UTF-8'); ?>" class="action-icon" title="Editar"><i class="fa-solid fa-pen-to-square"></i></a>
+                                        <a href="#" class="action-icon-delete" title="Eliminar" data-file-id="<?php echo $file['id']; ?>"><i class="fa-solid fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>

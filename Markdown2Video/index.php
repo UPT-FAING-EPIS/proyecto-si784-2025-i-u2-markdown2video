@@ -222,6 +222,15 @@ if ($controllerClassName === 'Dales\\Markdown2video\\Controllers\\AuthController
     }
 }
 
+// --- RUTAS PARA LA API ---
+if ($controllerNamePart === 'Api') {
+    // Rutas para el controlador de API
+    if ($actionName === 'saved-files' && isset($urlSegments[2]) && $urlSegments[2] === 'delete' && isset($urlSegments[3]) && is_numeric($urlSegments[3])) {
+        $controllerClassName = 'Dales\\Markdown2video\\Controllers\\ApiController';
+        $methodToCall = 'deleteSavedFile';
+        $params = [(int)$urlSegments[3]]; // Convertir el ID a entero
+    }
+}
 
 // VERIFICAR Y EJECUTAR EL CONTROLADOR
 if (class_exists($controllerClassName)) {
@@ -233,6 +242,7 @@ if (class_exists($controllerClassName)) {
             'Dales\\Markdown2video\\Controllers\\DashboardController',
             'Dales\\Markdown2video\\Controllers\\MarkdownController',
             'Dales\\Markdown2video\\Controllers\\ImageController',
+            'Dales\\Markdown2video\\Controllers\\ApiController',
         ];
 
         if (in_array($controllerClassName, $controllersRequiringPdo)) {
