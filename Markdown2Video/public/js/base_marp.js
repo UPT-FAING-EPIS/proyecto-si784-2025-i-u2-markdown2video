@@ -133,6 +133,8 @@ document.addEventListener("DOMContentLoaded", function () {
     
     // Solicitar título si es un archivo nuevo o si se quiere cambiar el título
     let title;
+    let useExistingTitle = false;
+    
     if (!currentFileId) {
       title = prompt('Ingresa un título para tu archivo:');
       if (!title || !title.trim()) {
@@ -148,6 +150,9 @@ document.addEventListener("DOMContentLoaded", function () {
           alert('Debes ingresar un título para guardar el archivo');
           return;
         }
+      } else {
+        // Indicar que se debe usar el título existente en el servidor
+        useExistingTitle = true;
       }
     }
     
@@ -155,7 +160,16 @@ document.addEventListener("DOMContentLoaded", function () {
       // Preparar los datos para enviar
       const formData = new FormData();
       formData.append('content', markdownContent);
-      if (title) formData.append('title', title);
+      
+      // Si se proporciona un nuevo título, enviarlo
+      // Si se mantiene el título existente, enviar un indicador
+      if (title) {
+        formData.append('title', title);
+      } else if (useExistingTitle && currentFileId) {
+        // Enviar un título temporal para que el backend sepa que debe mantener el título existente
+        formData.append('title', 'KEEP_EXISTING_TITLE');
+      }
+      
       if (currentFileId) formData.append('fileId', currentFileId);
       formData.append('isPublic', false); // Por defecto no es público
       

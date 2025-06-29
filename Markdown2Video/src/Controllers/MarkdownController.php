@@ -106,8 +106,22 @@ class MarkdownController
             return;
         }
 
+        // Si es un archivo existente y se indica mantener el título actual
+        if ($fileId && $title === 'KEEP_EXISTING_TITLE') {
+            // Obtener el título actual del archivo
+            $savedFilesModel = new \Dales\Markdown2video\Models\SavedFilesModel($this->pdo);
+            $existingFile = $savedFilesModel->getSavedFileByIdAndUserId($fileId, $_SESSION['user_id']);
+            
+            if ($existingFile) {
+                $title = $existingFile['title'];
+            } else {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'error' => 'Archivo no encontrado']);
+                return;
+            }
+        }
         // Validar que el título no esté vacío
-        if (empty($title)) {
+        else if (empty($title)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'El título no puede estar vacío']);
             return;
