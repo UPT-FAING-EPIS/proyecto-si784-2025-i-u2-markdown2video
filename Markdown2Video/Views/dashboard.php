@@ -3,7 +3,8 @@
 // Asegurarse de que las variables esperadas existan con valores por defecto
 $base_url = $base_url ?? '';
 $pageTitle = $pageTitle ?? 'Dashboard';
-$templates = $templates ?? [];
+$markdownTemplates = $markdownTemplates ?? [];
+$marpTemplates = $marpTemplates ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -154,13 +155,13 @@ $templates = $templates ?? [];
             </div>
         </div>
 
-        <!-- SECCIÓN DE PLANTILLAS -->
+        <!-- SECCIÓN DE PLANTILLAS MARKDOWN -->
         <div class="templates-section">
-            <h3>...o empieza desde una Plantilla Profesional</h3>
+            <h3>...o empieza desde una Plantilla Markdown</h3>
             <div class="templates-container">
                 <div class="templates-row">
-                    <?php if (!empty($templates)): ?>
-                        <?php foreach ($templates as $template): ?>
+                    <?php if (!empty($markdownTemplates)): ?>
+                        <?php foreach ($markdownTemplates as $template): ?>
                             <a href="<?php echo htmlspecialchars($base_url . '/markdown/create-from-template/' . $template['id_template'], ENT_QUOTES, 'UTF-8'); ?>" class="template-card">
                                 <img src="<?php echo htmlspecialchars($base_url . '/public/assets/imagen/' . $template['preview_image_path'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($template['title'], ENT_QUOTES, 'UTF-8'); ?>">
                                 <div class="template-card-content">
@@ -170,7 +171,29 @@ $templates = $templates ?? [];
                             </a>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <p>No hay plantillas disponibles en este momento.</p>
+                        <p>No hay plantillas Markdown disponibles en este momento.</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SECCIÓN DE PLANTILLAS MARP -->
+        <div class="templates-section">
+            <h3>...o empieza desde una Plantilla Marp</h3>
+            <div class="templates-container">
+                <div class="templates-row">
+                    <?php if (!empty($marpTemplates)): ?>
+                        <?php foreach ($marpTemplates as $template): ?>
+                            <a href="<?php echo htmlspecialchars($base_url . '/markdown/marp-editor?template_id=' . $template['id_template'], ENT_QUOTES, 'UTF-8'); ?>" class="template-card">
+                                <img src="<?php echo htmlspecialchars($base_url . '/public/assets/imagen/' . $template['preview_image_path'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($template['title'], ENT_QUOTES, 'UTF-8'); ?>">
+                                <div class="template-card-content">
+                                    <h4><?php echo htmlspecialchars($template['title'], ENT_QUOTES, 'UTF-8'); ?></h4>
+                                    <p><?php echo htmlspecialchars($template['description'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                </div>
+                            </a>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p>No hay plantillas Marp disponibles en este momento.</p>
                     <?php endif; ?>
                 </div>
             </div>

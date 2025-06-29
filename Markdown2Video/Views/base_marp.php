@@ -37,7 +37,7 @@ echo "</script>\n";
                 </select>
             </div>
             <div class="editor-body">
-                <textarea id="editor-marp" class="editor" placeholder="Escribe tu presentación Marp aquí..."></textarea> <!-- ID DIFERENTE -->
+                <textarea id="editor-marp" class="editor" placeholder="Escribe tu presentación Marp aquí..."><?php echo isset($initialContent) ? htmlspecialchars($initialContent, ENT_QUOTES, 'UTF-8') : ''; ?></textarea> <!-- ID DIFERENTE -->
             </div>
         </div>
         <div class="preview-container">

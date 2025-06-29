@@ -48,10 +48,9 @@ class DashboardController {
         //    - Datos específicos del dashboard (ej. historial reciente, estadísticas)
         $historicalData = []; // Array vacío como placeholder (Tu código original)
 
-        // --- ¡NUEVO! ---
-        // Obtenemos la lista de plantillas disponibles desde el modelo.
-        // Si el modelo no se pudo crear (por falta de PDO), devolvemos un array vacío.
-        $templates = $this->templateModel ? $this->templateModel->getActiveTemplates() : [];
+        // Obtenemos las plantillas separadas por tipo
+        $markdownTemplates = $this->templateModel ? $this->templateModel->getActiveTemplates('markdown') : [];
+        $marpTemplates = $this->templateModel ? $this->templateModel->getActiveTemplates('marp') : [];
 
         // 2. Preparar variables que la vista necesitará (Tu código original)
         $pageTitle = "Dashboard Principal";

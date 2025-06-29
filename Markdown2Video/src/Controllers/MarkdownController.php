@@ -62,6 +62,7 @@ class MarkdownController
     /**
      * Muestra el editor para Marp.
      * Ruta: GET /markdown/marp-editor
+     * Puede recibir un parámetro template_id para cargar una plantilla
      */
     public function showMarpEditor(): void
     {
@@ -71,6 +72,24 @@ class MarkdownController
             $_SESSION['csrf_token_marp_generate'] = bin2hex(random_bytes(32));
         }
         $csrf_token_marp_generate = $_SESSION['csrf_token_marp_generate'];
+        
+        // Verificar si se ha solicitado cargar una plantilla
+        $initialContent = '';
+        if (isset($_GET['template_id']) && is_numeric($_GET['template_id'])) {
+            $templateId = (int)$_GET['template_id'];
+            
+            // Verificamos que el modelo de plantillas exista
+            if ($this->pdo) {
+                $templateModel = new \Dales\Markdown2video\Models\TemplateModel($this->pdo);
+                
+                // Obtenemos el contenido de la plantilla desde la base de datos
+                $templateContent = $templateModel->getTemplateContentById($templateId);
+                
+                if ($templateContent !== null) {
+                    $initialContent = $templateContent;
+                }
+            }
+        }
 
         $viewPath = VIEWS_PATH . 'base_marp.php'; // Asume que es Views/base_marp.php
         if (file_exists($viewPath)) {

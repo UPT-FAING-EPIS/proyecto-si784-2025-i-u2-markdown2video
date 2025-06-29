@@ -12,10 +12,18 @@ class TemplateModel {
 
     /**
      * Obtiene todas las plantillas activas.
+     * @param string|null $templateType Si se especifica, filtra por tipo de plantilla
+     * @return array Array de plantillas activas
      */
-    public function getActiveTemplates(): array {
-        $sql = "SELECT id_template, title, description, preview_image_path FROM templates WHERE is_active = 1 ORDER BY title ASC";
-        $stmt = $this->pdo->query($sql);
+    public function getActiveTemplates(?string $templateType = null): array {
+        if ($templateType) {
+            $sql = "SELECT id_template, title, description, preview_image_path, template_type FROM templates WHERE is_active = 1 AND template_type = :template_type ORDER BY title ASC";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute(['template_type' => $templateType]);
+        } else {
+            $sql = "SELECT id_template, title, description, preview_image_path, template_type FROM templates WHERE is_active = 1 ORDER BY title ASC";
+            $stmt = $this->pdo->query($sql);
+        }
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
