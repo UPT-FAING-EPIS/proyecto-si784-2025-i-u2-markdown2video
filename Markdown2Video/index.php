@@ -209,9 +209,14 @@ if ($controllerClassName === 'Dales\\Markdown2video\\Controllers\\AuthController
     } elseif ($actionName === 'force-download-jpg' && $_SERVER['REQUEST_METHOD'] === 'GET') {
         $methodToCall = 'forceDownloadJpg';
     }
-    // --- ¡AÑADIR ESTA NUEVA RUTA AQUÍ! ---
+    // --- RUTAS PARA PLANTILLAS ---
     elseif ($actionName === 'create-from-template' && isset($urlSegments[2]) && is_numeric($urlSegments[2])) {
         $methodToCall = 'createFromTemplate';
+        // El ID de la plantilla (el número) se pasa como parámetro al método.
+        $params = [$urlSegments[2]];
+    }
+    elseif ($actionName === 'create-from-marp-template' && isset($urlSegments[2]) && is_numeric($urlSegments[2])) {
+        $methodToCall = 'createFromMarpTemplate';
         // El ID de la plantilla (el número) se pasa como parámetro al método.
         $params = [$urlSegments[2]];
     }

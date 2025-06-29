@@ -184,7 +184,7 @@ $marpTemplates = $marpTemplates ?? [];
                 <div class="templates-row">
                     <?php if (!empty($marpTemplates)): ?>
                         <?php foreach ($marpTemplates as $template): ?>
-                            <a href="<?php echo htmlspecialchars($base_url . '/markdown/marp-editor?template_id=' . $template['id_template'], ENT_QUOTES, 'UTF-8'); ?>" class="template-card">
+                            <a href="<?php echo htmlspecialchars($base_url . '/markdown/create-from-marp-template/' . $template['id_template'], ENT_QUOTES, 'UTF-8'); ?>" class="template-card">
                                 <img src="<?php echo htmlspecialchars($base_url . '/public/assets/imagen/' . $template['preview_image_path'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlspecialchars($template['title'], ENT_QUOTES, 'UTF-8'); ?>">
                                 <div class="template-card-content">
                                     <h4><?php echo htmlspecialchars($template['title'], ENT_QUOTES, 'UTF-8'); ?></h4>
