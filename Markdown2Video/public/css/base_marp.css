@@ -41,6 +41,28 @@ body.marp-editor-page {
   flex-shrink: 0;
 }
 
+.editor-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.save-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 6px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.save-btn:hover {
+  background-color: #45a049;
+}
+
 .editor-header h2, .preview-header h2 {
   margin: 0;
   font-size: 1.1em;

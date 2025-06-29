@@ -3,8 +3,21 @@ document.addEventListener("DOMContentLoaded", function () {
   const editorTextareaMarp = document.getElementById("editor-marp");
   const previewDivMarp = document.getElementById("ppt-preview");
   const modeSelectMarp = document.getElementById("mode-select-marp-page");
+  const saveMarpBtn = document.getElementById("save-marp-btn");
 
   let marpDebounceTimer;
+  // Variable para almacenar el ID del archivo si estamos editando uno existente
+  let currentFileId = null;
+  
+  // Extraer el ID del archivo de la URL si existe
+  const urlParams = new URLSearchParams(window.location.search);
+  const pathSegments = window.location.pathname.split('/');
+  const lastSegment = pathSegments[pathSegments.length - 1];
+  
+  // Verificar si el último segmento de la URL es un número (ID del archivo)
+  if (!isNaN(lastSegment) && lastSegment.trim() !== '') {
+    currentFileId = parseInt(lastSegment);
+  }
 
   if (!editorTextareaMarp) {
     console.error(
@@ -106,6 +119,82 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("Modo Marp ya seleccionado.");
       }
     });
+  }
+
+  // Función para guardar el archivo Marp
+  async function saveMarpFile() {
+    const markdownContent = marpCodeMirrorEditor.getValue();
+    
+    // Validar que el contenido no esté vacío
+    if (!markdownContent.trim()) {
+      alert('El contenido no puede estar vacío');
+      return;
+    }
+    
+    // Solicitar título si es un archivo nuevo o si se quiere cambiar el título
+    let title;
+    if (!currentFileId) {
+      title = prompt('Ingresa un título para tu archivo:');
+      if (!title || !title.trim()) {
+        alert('Debes ingresar un título para guardar el archivo');
+        return;
+      }
+    } else {
+      // Si es un archivo existente, preguntar si desea mantener el título actual
+      const keepTitle = confirm('¿Deseas mantener el título actual?');
+      if (!keepTitle) {
+        title = prompt('Ingresa un nuevo título para tu archivo:');
+        if (!title || !title.trim()) {
+          alert('Debes ingresar un título para guardar el archivo');
+          return;
+        }
+      }
+    }
+    
+    try {
+      // Preparar los datos para enviar
+      const formData = new FormData();
+      formData.append('content', markdownContent);
+      if (title) formData.append('title', title);
+      if (currentFileId) formData.append('fileId', currentFileId);
+      formData.append('isPublic', false); // Por defecto no es público
+      
+      // Mostrar indicador de carga
+      saveMarpBtn.textContent = 'Guardando...';
+      saveMarpBtn.disabled = true;
+      
+      // Enviar la solicitud al servidor
+      const response = await fetch('/markdown/save-marp', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Actualizar el ID del archivo si es nuevo
+        if (!currentFileId && result.fileId) {
+          currentFileId = result.fileId;
+          // Actualizar la URL sin recargar la página
+          window.history.replaceState({}, document.title, `/markdown/marp-editor/${currentFileId}`);
+        }
+        alert('Archivo guardado correctamente');
+      } else {
+        alert(`Error al guardar: ${result.error || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error('Error al guardar el archivo:', error);
+      alert('Error al guardar el archivo. Revisa la consola para más detalles.');
+    } finally {
+      // Restaurar el botón
+      saveMarpBtn.textContent = 'Guardar';
+      saveMarpBtn.disabled = false;
+    }
+  }
+  
+  // Agregar evento al botón de guardar
+  if (saveMarpBtn) {
+    saveMarpBtn.addEventListener('click', saveMarpFile);
   }
 
   // Event listeners para los botones de generación

@@ -81,6 +81,71 @@ class MarkdownController
     }
 
     /**
+     * Guarda un archivo Marp en la base de datos.
+     * Ruta: POST /markdown/save-marp
+     */
+    public function saveMarpFile(): void
+    {
+        // Verificar que el usuario esté autenticado
+        if (!isset($_SESSION['user_id'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Usuario no autenticado']);
+            return;
+        }
+
+        // Obtener los datos del formulario
+        $content = $_POST['content'] ?? '';
+        $title = $_POST['title'] ?? '';
+        $fileId = isset($_POST['fileId']) && is_numeric($_POST['fileId']) ? (int)$_POST['fileId'] : null;
+        $isPublic = isset($_POST['isPublic']) ? (bool)$_POST['isPublic'] : false;
+
+        // Validar que el contenido no esté vacío
+        if (empty($content)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'El contenido no puede estar vacío']);
+            return;
+        }
+
+        // Validar que el título no esté vacío
+        if (empty($title)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'El título no puede estar vacío']);
+            return;
+        }
+
+        try {
+            // Guardar el archivo en la base de datos
+            $savedFilesModel = new \Dales\Markdown2video\Models\SavedFilesModel($this->pdo);
+            $result = $savedFilesModel->saveFile(
+                $_SESSION['user_id'],
+                $title,
+                $content,
+                'marp',
+                $isPublic,
+                $fileId
+            );
+
+            if ($result) {
+                // Devolver respuesta exitosa
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Archivo guardado correctamente',
+                    'fileId' => $result
+                ]);
+            } else {
+                // Error al guardar
+                http_response_code(500);
+                echo json_encode(['success' => false, 'error' => 'Error al guardar el archivo']);
+            }
+        } catch (\Exception $e) {
+            // Error en el proceso
+            error_log('Error en saveMarpFile: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => 'Error interno del servidor']);
+        }
+    }
+
+    /**
      * Muestra el editor para Marp.
      * Ruta: GET /markdown/marp-editor
      * Ruta: GET /markdown/marp-editor/{id}

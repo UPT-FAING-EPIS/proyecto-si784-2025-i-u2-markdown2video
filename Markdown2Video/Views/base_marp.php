@@ -31,10 +31,13 @@ echo "</script>\n";
         <div class="editor-container">
             <div class="editor-header">
                 <h2>Editor (Marp)</h2>
-                <select id="mode-select-marp-page" class="mode-selector"> <!-- ID DIFERENTE -->
-                    <option value="marp" selected>Marp</option>
-                    <option value="markdown">Markdown Estándar</option>
-                </select>
+                <div class="editor-controls">
+                    <button id="save-marp-btn" class="save-btn">Guardar</button>
+                    <select id="mode-select-marp-page" class="mode-selector"> <!-- ID DIFERENTE -->
+                        <option value="marp" selected>Marp</option>
+                        <option value="markdown">Markdown Estándar</option>
+                    </select>
+                </div>
             </div>
             <div class="editor-body">
                 <textarea id="editor-marp" class="editor" placeholder="Escribe tu presentación Marp aquí..."><?php echo isset($initialContent) ? htmlspecialchars($initialContent, ENT_QUOTES, 'UTF-8') : ''; ?></textarea> <!-- ID DIFERENTE -->
