@@ -294,6 +294,8 @@ textarea.editor {
   width: 100%;
   max-width: 450px;
   animation: modalFadeIn 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes modalFadeIn {
@@ -312,6 +314,8 @@ textarea.editor {
 }
 
 .modal-body {
+  display: flex;
+  flex-direction: column;
   margin-bottom: 25px;
 }
 
@@ -345,6 +349,7 @@ textarea.editor {
 /* Estilos para los botones debajo del textbox */
 .modal-buttons {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
