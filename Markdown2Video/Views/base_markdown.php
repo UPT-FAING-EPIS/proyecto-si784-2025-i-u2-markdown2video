@@ -65,6 +65,12 @@ echo "</script>\n";
       <div class="button-container">
         <button class="generate-btn" id="generatePdfBtnHtml">Generar PDF</button>
         <button class="generate-btn" id="generateHtmlBtn">Generar HTML</button>
+        <button class="generate-btn" id="saveMarkdownBtn">Guardar</button>
+        <div class="toggle-container">
+          <label for="publicToggle" class="toggle-label">Público</label>
+          <input type="checkbox" id="publicToggle" class="toggle-input">
+          <span class="toggle-slider"></span>
+        </div>
       </div>
     </div>
   </div>

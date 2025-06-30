@@ -168,6 +168,8 @@ if ($controllerClassName === 'Dales\\Markdown2video\\Controllers\\AuthController
         $methodToCall = 'renderMarpPreview'; 
     } elseif ($actionName === 'save-marp' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $methodToCall = 'saveMarpFile';
+    } elseif ($actionName === 'save-markdown' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $methodToCall = 'saveMarkdownFile';
     }
     // --- RUTAS PARA GENERAR PDF DESDE HTML DEL PREVIEW ---
     elseif ($actionName === 'generate-pdf-from-html' && $_SERVER['REQUEST_METHOD'] === 'POST') { 

@@ -185,6 +185,108 @@ class MarkdownController
     }
 
     /**
+     * Guarda un archivo Markdown en la base de datos.
+     * Ruta: POST /markdown/save-markdown
+     */
+    public function saveMarkdownFile(): void
+    {
+        // Verificar que el usuario esté autenticado
+        if (!isset($_SESSION['user_id'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'error' => 'Usuario no autenticado']);
+            return;
+        }
+
+        // Obtener los datos del formulario
+        $content = $_POST['content'] ?? '';
+        $title = $_POST['title'] ?? '';
+        $fileId = isset($_POST['fileId']) && is_numeric($_POST['fileId']) ? (int)$_POST['fileId'] : null;
+        // Convertir isPublic a booleano correctamente
+        $isPublic = isset($_POST['isPublic']) && ($_POST['isPublic'] === '1' || $_POST['isPublic'] === 'true' || $_POST['isPublic'] === true);
+
+        // Validar que el contenido no esté vacío
+        if (empty($content)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'El contenido no puede estar vacío']);
+            return;
+        }
+
+        // Inicializar el modelo de archivos guardados
+        $savedFilesModel = new \Dales\Markdown2video\Models\SavedFilesModel($this->pdo);
+        
+        // Si es un archivo existente, verificar que el usuario tenga acceso
+        if ($fileId) {
+            // Primero verificamos si el archivo existe y si el usuario tiene acceso
+            // (ya sea porque es público o porque es el propietario)
+            $existingFile = $savedFilesModel->getSavedFileByIdWithAccess($fileId, $_SESSION['user_id']);
+            
+            // Verificar que el archivo exista y que el usuario tenga acceso
+            if (!$existingFile) {
+                http_response_code(403); // Forbidden
+                echo json_encode(['success' => false, 'error' => 'No tienes permiso para acceder a este archivo']);
+                return;
+            }
+            
+            // Si el usuario no es el propietario, verificar que el archivo sea público
+            if ($existingFile['user_id'] != $_SESSION['user_id'] && !$existingFile['is_public']) {
+                http_response_code(403); // Forbidden
+                echo json_encode(['success' => false, 'error' => 'No tienes permiso para modificar este archivo privado']);
+                return;
+            }
+            
+            // Si se indica mantener el título actual
+            if ($title === 'KEEP_EXISTING_TITLE') {
+                $title = $existingFile['title'];
+            }
+        }
+        // Validar que el título no esté vacío
+        else if (empty($title)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'El título no puede estar vacío']);
+            return;
+        }
+
+        try {
+            // Determinar si el usuario es el propietario del archivo
+            $isOwner = true; // Por defecto asumimos que es el propietario
+            
+            if ($fileId && isset($existingFile)) {
+                $isOwner = ($existingFile['user_id'] == $_SESSION['user_id']);
+            }
+            
+            // Guardar el archivo en la base de datos
+            // El modelo ya está inicializado arriba
+            $result = $savedFilesModel->saveFile(
+                $_SESSION['user_id'],
+                $title,
+                $content,
+                'markdown',
+                $isPublic,
+                $fileId,
+                $isOwner
+            );
+
+            if ($result) {
+                // Devolver respuesta exitosa
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Archivo guardado correctamente',
+                    'fileId' => $result
+                ]);
+            } else {
+                // Error al guardar
+                http_response_code(500);
+                echo json_encode(['success' => false, 'error' => 'Error al guardar el archivo']);
+            }
+        } catch (\Exception $e) {
+            // Error en el proceso
+            error_log('Error en saveMarkdownFile: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'error' => 'Error interno del servidor']);
+        }
+    }
+
+    /**
      * Muestra el editor para Marp.
      * Ruta: GET /markdown/marp-editor
      * Ruta: GET /markdown/marp-editor/{id}
