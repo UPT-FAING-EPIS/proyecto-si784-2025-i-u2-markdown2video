@@ -105,108 +105,106 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function refreshEditor() { if (editorInstance) { editorInstance.setSize('100%', '100%'); editorInstance.refresh(); } }
 
-// Función para crear un modal de título
+// Función para crear un modal personalizado para el título
 function createTitleModal(isNewFile = true, currentTitle = '') {
     return new Promise((resolve, reject) => {
-        // Crear elementos del modal
-        const modalOverlay = document.createElement('div');
-        modalOverlay.className = 'modal-overlay';
-        modalOverlay.style.display = 'flex';
-        modalOverlay.style.position = 'fixed';
-        modalOverlay.style.top = '0';
-        modalOverlay.style.left = '0';
-        modalOverlay.style.width = '100%';
-        modalOverlay.style.height = '100%';
-        modalOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        modalOverlay.style.justifyContent = 'center';
-        modalOverlay.style.alignItems = 'center';
-        modalOverlay.style.zIndex = '1000';
-        
-        const modalContent = document.createElement('div');
-        modalContent.className = 'modal-content';
-        modalContent.style.backgroundColor = '#fff';
-        modalContent.style.padding = '20px';
-        modalContent.style.borderRadius = '5px';
-        modalContent.style.width = '400px';
-        modalContent.style.maxWidth = '90%';
-        
-        const modalTitle = document.createElement('h3');
-        modalTitle.textContent = isNewFile ? 'Guardar Archivo' : 'Actualizar Título';
-        
-        const inputLabel = document.createElement('label');
-        inputLabel.textContent = 'Título del archivo:';
-        inputLabel.style.display = 'block';
-        inputLabel.style.marginTop = '10px';
-        
-        const titleInput = document.createElement('input');
-        titleInput.type = 'text';
-        titleInput.value = currentTitle;
-        titleInput.style.width = '100%';
-        titleInput.style.padding = '8px';
-        titleInput.style.marginTop = '5px';
-        titleInput.style.boxSizing = 'border-box';
-        
-        const buttonContainer = document.createElement('div');
-        buttonContainer.style.marginTop = '20px';
-        buttonContainer.style.textAlign = 'right';
-        
-        const cancelButton = document.createElement('button');
-        cancelButton.textContent = 'Cancelar';
-        cancelButton.style.marginRight = '10px';
-        cancelButton.style.padding = '8px 15px';
-        cancelButton.style.backgroundColor = '#f44336';
-        cancelButton.style.color = 'white';
-        cancelButton.style.border = 'none';
-        cancelButton.style.borderRadius = '4px';
-        cancelButton.style.cursor = 'pointer';
-        
-        const saveButton = document.createElement('button');
-        saveButton.textContent = 'Guardar';
-        saveButton.style.padding = '8px 15px';
-        saveButton.style.backgroundColor = '#4CAF50';
-        saveButton.style.color = 'white';
-        saveButton.style.border = 'none';
-        saveButton.style.borderRadius = '4px';
-        saveButton.style.cursor = 'pointer';
-        
-        // Construir el modal
-        buttonContainer.appendChild(cancelButton);
-        buttonContainer.appendChild(saveButton);
-        
-        modalContent.appendChild(modalTitle);
-        modalContent.appendChild(inputLabel);
-        modalContent.appendChild(titleInput);
-        modalContent.appendChild(buttonContainer);
-        
-        modalOverlay.appendChild(modalContent);
-        document.body.appendChild(modalOverlay);
-        
-        // Enfocar el input
-        titleInput.focus();
-        
-        // Eventos
-        cancelButton.addEventListener('click', () => {
-            document.body.removeChild(modalOverlay);
-            reject('Operación cancelada');
-        });
-        
-        saveButton.addEventListener('click', () => {
-            const title = titleInput.value.trim();
-            if (!title) {
-                alert('Por favor, ingresa un título');
-                return;
-            }
-            document.body.removeChild(modalOverlay);
-            resolve(title);
-        });
-        
-        titleInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                saveButton.click();
-            }
-        });
+      // Crear elementos del modal
+      const modalOverlay = document.createElement('div');
+      modalOverlay.className = 'modal-overlay';
+      
+      const modalContent = document.createElement('div');
+      modalContent.className = 'modal-content';
+      
+      // Header del modal
+      const modalHeader = document.createElement('div');
+      modalHeader.className = 'modal-header';
+      const modalTitle = document.createElement('h3');
+      modalTitle.textContent = isNewFile ? 'Guardar nuevo archivo' : 'Actualizar archivo';
+      modalHeader.appendChild(modalTitle);
+      
+      // Body del modal
+      const modalBody = document.createElement('div');
+      modalBody.className = 'modal-body';
+      
+      const formGroup = document.createElement('div');
+      formGroup.className = 'form-group';
+      
+      const titleLabel = document.createElement('label');
+      titleLabel.setAttribute('for', 'file-title-input');
+      titleLabel.textContent = 'Título del archivo:';
+      
+      const titleInput = document.createElement('input');
+      titleInput.type = 'text';
+      titleInput.id = 'file-title-input';
+      titleInput.className = 'form-control';
+      titleInput.value = currentTitle;
+      titleInput.placeholder = 'Ingresa un título para tu archivo';
+      titleInput.required = true;
+      
+      formGroup.appendChild(titleLabel);
+      formGroup.appendChild(titleInput);
+      modalBody.appendChild(formGroup);
+      
+      // Footer del modal
+      const modalFooter = document.createElement('div');
+      modalFooter.className = 'modal-footer';
+      
+      const cancelButton = document.createElement('button');
+      cancelButton.className = 'btn btn-secondary';
+      cancelButton.textContent = 'Cancelar';
+      cancelButton.onclick = () => {
+        document.body.removeChild(modalOverlay);
+        reject('Operación cancelada');
+      };
+      
+      const saveButton = document.createElement('button');
+      saveButton.className = 'btn btn-primary';
+      saveButton.textContent = 'Guardar';
+      saveButton.onclick = () => {
+        const title = titleInput.value.trim();
+        if (!title) {
+          titleInput.style.borderColor = 'red';
+          return;
+        }
+        document.body.removeChild(modalOverlay);
+        resolve(title);
+      };
+      
+      // Si es un archivo existente, agregar opción para mantener el título actual
+      if (!isNewFile) {
+        const keepTitleButton = document.createElement('button');
+        keepTitleButton.className = 'btn btn-secondary';
+        keepTitleButton.textContent = 'Mantener título actual';
+        keepTitleButton.onclick = () => {
+          document.body.removeChild(modalOverlay);
+          resolve('KEEP_EXISTING_TITLE');
+        };
+        modalFooter.appendChild(keepTitleButton);
+      }
+      
+      modalFooter.appendChild(cancelButton);
+      modalFooter.appendChild(saveButton);
+      
+      // Ensamblar el modal
+      modalContent.appendChild(modalHeader);
+      modalContent.appendChild(modalBody);
+      modalContent.appendChild(modalFooter);
+      modalOverlay.appendChild(modalContent);
+      
+      // Agregar el modal al DOM
+      document.body.appendChild(modalOverlay);
+      
+      // Enfocar el input
+      titleInput.focus();
+      
+      // Permitir enviar con Enter
+      titleInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          saveButton.click();
+        }
+      });
     });
-}
+  }
 
 // Función para guardar el archivo Markdown
 async function saveMarkdownFile() {
@@ -227,12 +225,20 @@ async function saveMarkdownFile() {
         } else {
             // Archivo existente
             title = await createTitleModal(false);
+            
+            // Si el usuario eligió mantener el título actual, no enviamos el título
+            if (title === 'KEEP_EXISTING_TITLE') {
+                // No incluimos el título en formData para mantener el actual
+                title = null;
+            }
         }
         
         // Preparar los datos para enviar
         const formData = new FormData();
         formData.append('content', markdownContent);
-        formData.append('title', title);
+        if (title !== null) {
+            formData.append('title', title);
+        }
         
         if (currentFileId) formData.append('fileId', currentFileId);
         

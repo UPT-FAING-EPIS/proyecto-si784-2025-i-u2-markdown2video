@@ -49,6 +49,14 @@ echo "</script>\n";
         <h2>Editor</h2>
         <!-- ¡NUEVO! Contenedor para alinear el botón y el selector -->
         <div class="editor-controls">
+            <div class="public-toggle-container">
+                <label for="publicToggle" class="toggle-label">Público</label>
+                <label class="switch">
+                    <input type="checkbox" id="publicToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <button id="saveMarkdownBtn" class="save-btn">Guardar</button>
             <!-- ¡NUEVO! Botón para abrir el modal de imágenes -->
             <button id="openImageModalBtn" class="icon-btn" title="Gestionar imágenes"><i class="fa-solid fa-image"></i></button>
             <select id="mode-select" class="mode-selector">
@@ -65,12 +73,6 @@ echo "</script>\n";
       <div class="button-container">
         <button class="generate-btn" id="generatePdfBtnHtml">Generar PDF</button>
         <button class="generate-btn" id="generateHtmlBtn">Generar HTML</button>
-        <button class="generate-btn" id="saveMarkdownBtn">Guardar</button>
-        <div class="toggle-container">
-          <label for="publicToggle" class="toggle-label">Público</label>
-          <input type="checkbox" id="publicToggle" class="toggle-input">
-          <span class="toggle-slider"></span>
-        </div>
       </div>
     </div>
   </div>
