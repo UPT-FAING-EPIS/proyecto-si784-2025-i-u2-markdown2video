@@ -33,23 +33,13 @@ echo "</script>\n";
   <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/modal_and_gallery.css">
   <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/mermaid.css">
   <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/preview_styles.css">
-  <link rel="stylesheet" href="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/css/notification.css"> <!-- CSS para notificaciones -->
   <!-- En el <head> de base_markdown.php -->
 <script src="https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.min.js"></script>
-<script src="<?php echo htmlspecialchars($base_url, ENT_QUOTES, 'UTF-8'); ?>/public/js/notification.js"></script>
 </head>
 <body>
   <?php 
   if (defined('VIEWS_PATH') && file_exists(VIEWS_PATH . 'header.php')) { 
     include VIEWS_PATH . 'header.php'; 
-  }
-  
-  // Mostrar notificación si existe en la sesión
-  if (isset($_SESSION['notification'])) {
-    $type = htmlspecialchars($_SESSION['notification']['type'], ENT_QUOTES, 'UTF-8');
-    $message = htmlspecialchars($_SESSION['notification']['message'], ENT_QUOTES, 'UTF-8');
-    echo "<script>document.addEventListener('DOMContentLoaded', function() { NotificationSystem.show('$message', '$type', 5000); });</script>";
-    unset($_SESSION['notification']); // Limpiar la notificación después de mostrarla
   }
   ?>
 

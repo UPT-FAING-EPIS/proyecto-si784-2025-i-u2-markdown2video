@@ -65,14 +65,6 @@ class MarkdownController
                 $initialContent = $fileData['content'];
                 $isOwner = $fileData['user_id'] == $_SESSION['user_id'];
                 $pageTitle = ($isOwner ? "Editar: " : "Ver: ") . htmlspecialchars($fileData['title'], ENT_QUOTES, 'UTF-8');
-                
-                // Si el usuario no es el propietario, mostrar una notificación
-                if (!$isOwner) {
-                    $_SESSION['notification'] = [
-                        'type' => 'info',
-                        'message' => 'Estás viendo un archivo público. Solo el propietario puede modificarlo.'
-                    ];
-                }
             } else {
                 // Si el archivo no existe, no es del tipo correcto o no tiene acceso, redirigimos al dashboard
                 header('Location: ' . BASE_URL . '/dashboard');
@@ -202,14 +194,6 @@ class MarkdownController
                 $initialContent = $fileData['content'];
                 $isOwner = $fileData['user_id'] == $_SESSION['user_id'];
                 $pageTitle = ($isOwner ? "Editar: " : "Ver: ") . htmlspecialchars($fileData['title'], ENT_QUOTES, 'UTF-8');
-                
-                // Si el usuario no es el propietario, mostrar una notificación
-                if (!$isOwner) {
-                    $_SESSION['notification'] = [
-                        'type' => 'info',
-                        'message' => 'Estás viendo un archivo público. Solo el propietario puede modificarlo.'
-                    ];
-                }
             } else {
                 // Si el archivo no existe, no es del tipo correcto o no tiene acceso, redirigimos al dashboard
                 header('Location: ' . BASE_URL . '/dashboard');

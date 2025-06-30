@@ -69,20 +69,24 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.success && data.data) {
                 // Verificar si el usuario es el propietario
                 if (data.data.is_owner === false) {
-                    // Deshabilitar la edición si el usuario no es el propietario
-                    if (editorInstance) {
-                        editorInstance.setOption('readOnly', true);
+                    // Si el archivo no es público, deshabilitar la edición
+                    if (!data.data.is_public) {
+                        // Deshabilitar la edición si el usuario no es el propietario y el archivo no es público
+                        if (editorInstance) {
+                            editorInstance.setOption('readOnly', true);
+                        }
+                        
+                        // Cambiar el estilo para indicar que está en modo de solo lectura
+                        document.querySelector('.editor-container').classList.add('read-only-mode');
+                        
+                        // Deshabilitar los botones de generación
+                        const generateButtons = document.querySelectorAll('.generate-btn');
+                        generateButtons.forEach(button => {
+                            button.disabled = true;
+                            button.title = 'No tienes permiso para modificar este archivo privado';
+                        });
                     }
-                    
-                    // Cambiar el estilo para indicar que está en modo de solo lectura
-                    document.querySelector('.editor-container').classList.add('read-only-mode');
-                    
-                    // Deshabilitar los botones de generación
-                    const generateButtons = document.querySelectorAll('.generate-btn');
-                    generateButtons.forEach(button => {
-                        button.disabled = true;
-                        button.title = 'Solo el propietario puede generar contenido';
-                    });
+                    // Si el archivo es público, permitir la edición a cualquier usuario autenticado
                 }
             }
         })

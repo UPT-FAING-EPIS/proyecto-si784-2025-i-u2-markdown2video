@@ -44,20 +44,26 @@ document.addEventListener("DOMContentLoaded", function () {
             if (data.data.is_owner === false) {
               isOwner = false;
               
-              // Deshabilitar la edición si el usuario no es el propietario
-              if (marpCodeMirrorEditor) {
-                marpCodeMirrorEditor.setOption('readOnly', true);
+              // Si el archivo no es público, deshabilitar la edición
+              if (!data.data.is_public) {
+                // Deshabilitar la edición si el usuario no es el propietario y el archivo no es público
+                if (marpCodeMirrorEditor) {
+                  marpCodeMirrorEditor.setOption('readOnly', true);
+                }
+                
+                // Deshabilitar el toggle y el botón de guardar
+                if (publicToggle) publicToggle.disabled = true;
+                if (saveMarpBtn) {
+                  saveMarpBtn.disabled = true;
+                  saveMarpBtn.title = 'No tienes permiso para modificar este archivo privado';
+                }
+                
+                // Cambiar el estilo para indicar que está en modo de solo lectura
+                document.querySelector('.editor-container').classList.add('read-only-mode');
+              } else {
+                // El archivo es público, permitir la edición a cualquier usuario autenticado
+                if (publicToggle) publicToggle.disabled = true; // Solo el propietario puede cambiar el estado público/privado
               }
-              
-              // Deshabilitar el toggle y el botón de guardar
-              if (publicToggle) publicToggle.disabled = true;
-              if (saveMarpBtn) {
-                saveMarpBtn.disabled = true;
-                saveMarpBtn.title = 'Solo el propietario puede modificar este archivo';
-              }
-              
-              // Cambiar el estilo para indicar que está en modo de solo lectura
-              document.querySelector('.editor-container').classList.add('read-only-mode');
             }
           }
         })
