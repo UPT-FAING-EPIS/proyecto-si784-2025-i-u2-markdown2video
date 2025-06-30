@@ -112,15 +112,23 @@ class MarkdownController
         // Inicializar el modelo de archivos guardados
         $savedFilesModel = new \Dales\Markdown2video\Models\SavedFilesModel($this->pdo);
         
-        // Si es un archivo existente, verificar que el usuario sea el propietario
+        // Si es un archivo existente, verificar que el usuario tenga acceso
         if ($fileId) {
-            // Obtener el archivo existente
-            $existingFile = $savedFilesModel->getSavedFileByIdAndUserId($fileId, $_SESSION['user_id']);
+            // Primero verificamos si el archivo existe y si el usuario tiene acceso
+            // (ya sea porque es público o porque es el propietario)
+            $existingFile = $savedFilesModel->getSavedFileByIdWithAccess($fileId, $_SESSION['user_id']);
             
-            // Verificar que el archivo exista y pertenezca al usuario actual
+            // Verificar que el archivo exista y que el usuario tenga acceso
             if (!$existingFile) {
                 http_response_code(403); // Forbidden
-                echo json_encode(['success' => false, 'error' => 'No tienes permiso para modificar este archivo']);
+                echo json_encode(['success' => false, 'error' => 'No tienes permiso para acceder a este archivo']);
+                return;
+            }
+            
+            // Si el usuario no es el propietario, verificar que el archivo sea público
+            if ($existingFile['user_id'] != $_SESSION['user_id'] && !$existingFile['is_public']) {
+                http_response_code(403); // Forbidden
+                echo json_encode(['success' => false, 'error' => 'No tienes permiso para modificar este archivo privado']);
                 return;
             }
             
@@ -137,6 +145,13 @@ class MarkdownController
         }
 
         try {
+            // Determinar si el usuario es el propietario del archivo
+            $isOwner = true; // Por defecto asumimos que es el propietario
+            
+            if ($fileId && isset($existingFile)) {
+                $isOwner = ($existingFile['user_id'] == $_SESSION['user_id']);
+            }
+            
             // Guardar el archivo en la base de datos
             // El modelo ya está inicializado arriba
             $result = $savedFilesModel->saveFile(
@@ -145,7 +160,8 @@ class MarkdownController
                 $content,
                 'marp',
                 $isPublic,
-                $fileId
+                $fileId,
+                $isOwner
             );
 
             if ($result) {

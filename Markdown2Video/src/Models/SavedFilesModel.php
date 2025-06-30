@@ -83,20 +83,32 @@ class SavedFilesModel {
      * @param int|null $fileId ID del archivo si es una actualización
      * @return int|bool ID del archivo creado/actualizado o false en caso de error
      */
-    public function saveFile(int $userId, string $title, string $content, string $fileType, bool $isPublic, ?int $fileId = null): int|bool {
+    public function saveFile(int $userId, string $title, string $content, string $fileType, bool $isPublic, ?int $fileId = null, bool $isOwner = true): int|bool {
         try {
             if ($fileId) {
                 // Actualizar archivo existente
-                $sql = "UPDATE saved_files SET title = :title, content = :content, file_type = :file_type, is_public = :is_public, updated_at = CURRENT_TIMESTAMP WHERE id = :id AND user_id = :user_id";
-                $stmt = $this->pdo->prepare($sql);
-                $stmt->execute([
-                    'title' => $title,
-                    'content' => $content,
-                    'file_type' => $fileType,
-                    'is_public' => $isPublic ? 1 : 0,
-                    'id' => $fileId,
-                    'user_id' => $userId
-                ]);
+                if ($isOwner) {
+                    // Si es el propietario, puede actualizar cualquier campo incluyendo is_public
+                    $sql = "UPDATE saved_files SET title = :title, content = :content, file_type = :file_type, is_public = :is_public, updated_at = CURRENT_TIMESTAMP WHERE id = :id AND user_id = :user_id";
+                    $stmt = $this->pdo->prepare($sql);
+                    $stmt->execute([
+                        'title' => $title,
+                        'content' => $content,
+                        'file_type' => $fileType,
+                        'is_public' => $isPublic ? 1 : 0,
+                        'id' => $fileId,
+                        'user_id' => $userId
+                    ]);
+                } else {
+                    // Si no es el propietario pero el archivo es público, solo puede actualizar el contenido
+                    // No puede cambiar el título ni el estado público/privado
+                    $sql = "UPDATE saved_files SET content = :content, updated_at = CURRENT_TIMESTAMP WHERE id = :id AND is_public = 1";
+                    $stmt = $this->pdo->prepare($sql);
+                    $stmt->execute([
+                        'content' => $content,
+                        'id' => $fileId
+                    ]);
+                }
                 return $stmt->rowCount() > 0 ? $fileId : false;
             } else {
                 // Crear nuevo archivo
