@@ -59,9 +59,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const pathSegments = window.location.pathname.split('/');
     const lastSegment = pathSegments[pathSegments.length - 1];
     
+    // Variable para almacenar el título actual del archivo
+    let currentFileTitle = '';
+    
     // Verificar si el último segmento de la URL es un número (ID del archivo)
     if (!isNaN(lastSegment) && lastSegment.trim() !== '') {
         const fileId = parseInt(lastSegment);
+        currentFileId = fileId; // Establecer el ID del archivo actual
         
         // Hacer una petición para obtener la información del archivo
         fetch(`${baseUrlJs}/api/saved-files/info/${fileId}`, {
@@ -73,6 +77,9 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(response => response.json())
         .then(data => {
             if (data.success && data.data) {
+                // Guardar el título actual del archivo
+                currentFileTitle = data.data.title || '';
+                
                 // Verificar si el usuario es el propietario
                 if (data.data.is_owner === false) {
                     // Si el archivo no es público, deshabilitar la edición
@@ -224,7 +231,7 @@ async function saveMarkdownFile() {
             title = await createTitleModal(true);
         } else {
             // Archivo existente
-            title = await createTitleModal(false);
+            title = await createTitleModal(false, currentFileTitle); // Pasamos el título actual del archivo
             
             // Si el usuario eligió mantener el título actual, no enviamos el título
             if (title === 'KEEP_EXISTING_TITLE') {
