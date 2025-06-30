@@ -152,9 +152,9 @@ function createTitleModal(isNewFile = true, currentTitle = '') {
       formGroup.appendChild(titleInput);
       modalBody.appendChild(formGroup);
       
-      // Footer del modal
-      const modalFooter = document.createElement('div');
-      modalFooter.className = 'modal-footer';
+      // Botones debajo del textbox
+      const buttonContainer = document.createElement('div');
+      buttonContainer.className = 'modal-buttons';
       
       const cancelButton = document.createElement('button');
       cancelButton.className = 'btn btn-secondary';
@@ -186,16 +186,16 @@ function createTitleModal(isNewFile = true, currentTitle = '') {
           document.body.removeChild(modalOverlay);
           resolve('KEEP_EXISTING_TITLE');
         };
-        modalFooter.appendChild(keepTitleButton);
+        buttonContainer.appendChild(keepTitleButton);
       }
       
-      modalFooter.appendChild(cancelButton);
-      modalFooter.appendChild(saveButton);
+      buttonContainer.appendChild(cancelButton);
+      buttonContainer.appendChild(saveButton);
+      modalBody.appendChild(buttonContainer);
       
       // Ensamblar el modal
       modalContent.appendChild(modalHeader);
       modalContent.appendChild(modalBody);
-      modalContent.appendChild(modalFooter);
       modalOverlay.appendChild(modalContent);
       
       // Agregar el modal al DOM

@@ -342,6 +342,14 @@ textarea.editor {
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
+/* Estilos para los botones debajo del textbox */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
